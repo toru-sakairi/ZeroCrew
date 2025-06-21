@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}ホーム - ZeroCrew{% endblock %}
+
+{# ▼▼▼ メインコンテンツブロック ▼▼▼ #}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="section-title">募集中のプロジェクト</h2>
+</div>
+
+{% for project in project_list %}
+    {% include 'projects/_project_card.html' with project=project %}
+{% empty %}
+    <div class="alert alert-light" role="alert">
+      まだ投稿されたプロジェクトはありません。最初のプロジェクトを投稿してみましょう！
+    </div>
+{% endfor %}
+{% endblock %}
+
+
+{# ▼▼▼ サイドバーブロック ▼▼▼ #}
+{% block sidebar %}
+<div class="sidebar-widget">
+    <h5 class="widget-title">人気のタグ</h5>
+    <div class="tags-area">
+        <span class="tag">Web開発</span>
+        <span class="tag">アプリ開発</span>
+        <span class="tag">デザイン</span>
+        <span class="tag">機械学習</span>
+        <span class="tag">ゲーム開発</span>
+    </div>
+</div>
+<div class="sidebar-widget mt-4">
+    <h5 class="widget-title">注目のユーザー</h5>
+    <p class="text-muted small">（この機能は今後実装します）</p>
+</div>
+{% endblock %}

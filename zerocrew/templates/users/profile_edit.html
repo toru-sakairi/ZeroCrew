@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}プロフィール編集{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>プロフィール編集</h3>
+            </div>
+            <div class="card-body">
+                <!-- enctype="multipart/form-data" は画像アップロードに必須 -->
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ user_form.as_p }}
+                    {{ profile_form.as_p }}
+                    <button type="submit" class="btn btn-primary">更新する</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // フォームのinput要素にBootstrapのクラスを自動で追加する
+    document.addEventListener('DOMContentLoaded', function() {
+        // 既存のスクリプトとほぼ同じ
+        const formInputs = document.querySelectorAll('form input, form textarea, form select');
+        formInputs.forEach(function(input) {
+            // fileタイプのinputは除外
+            if (input.type !== 'checkbox' && input.type !== 'file') {
+                input.classList.add('form-control');
+            } else if (input.type === 'file') {
+                input.classList.add('form-control-file');
+            }
+        });
+    });
+</script>
+{% endblock %}
+

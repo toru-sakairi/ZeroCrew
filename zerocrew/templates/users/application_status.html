@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}応募状況の確認{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">応募状況の確認</h1>
+
+<div class="list-group">
+    {% for app in applications %}
+    <div class="list-group-item list-group-item-action">
+        <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">
+                <a href="{% url 'projects:project_detail' app.project.pk %}">{{ app.project.title }}</a>
+            </h5>
+            <small>{{ app.applied_at|date:"Y/m/d" }}</small>
+        </div>
+        <p class="mb-1">プロジェクトオーナー: {{ app.project.user.username }}</p>
+        
+        {% if app.status == 'approved' %}
+            <span class="badge bg-success">承認済み</span>
+        {% elif app.status == 'rejected' %}
+            <span class="badge bg-danger">不採用</span>
+        {% else %}
+            <span class="badge bg-warning text-dark">申請中</span>
+        {% endif %}
+
+    </div>
+    {% empty %}
+    <p>応募したプロジェクトはまだありません。</p>
+    {% endfor %}
+</div>
+
+<a href="{% url 'users:profile' request.user.pk %}" class="btn btn-secondary mt-3">&laquo; マイページに戻る</a>
+{% endblock %}

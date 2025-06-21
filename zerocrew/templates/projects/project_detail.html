@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ project.title }} - ZeroCrew{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h1 class="h3 mb-0">{{ project.title }}</h1>
+        <div>
+            {% if request.user == project.user %}
+            <a href="{% url 'projects:project_chat' project.pk %}" class="btn btn-success me-2">グループチャット</a>
+            <a href="{% url 'projects:applicant_list' project.pk %}" class="btn btn-info">応募者を管理</a>
+            {% else %}
+            {% if is_member %}
+            <a href="{% url 'projects:project_chat' project.pk %}" class="btn btn-success">グループチャットに参加</a>
+            {% elif is_applied %}
+            <a href="#" class="btn btn-info disabled">承認待ち</a>
+            {% else %}
+            <form action="{% url 'projects:apply_for_project' project.pk %}" method="post" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">このプロジェクトに応募する</button>
+            </form>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- プロジェクト詳細情報をここに記述 -->
+        <p class="text-muted">
+            投稿者: <a href="{% url 'users:profile' project.user.pk %}">{{ project.user.username }}</a> <br>
+            最終更新日: {{ project.updated_at|date:"Y年m月d日 H:i" }}
+        </p>
+        <hr>
+        <h5 class="card-title">プロジェクト概要</h5>
+        <p class="card-text" style="white-space: pre-wrap;">{{ project.outline }}</p>
+    </div>
+    <div class="card-footer">
+        <a href="{% url 'projects:home' %}" class="btn btn-secondary">&laquo; プロジェクト一覧に戻る</a>
+    </div>
+</div>
+{% endblock %}

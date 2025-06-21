@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}「{{ project.title }}」のグループチャット{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">「{{ project.title }}」のグループチャット</h1>
+
+<!-- メッセージ表示エリア -->
+<div class="card mb-4" style="height: 60vh; overflow-y: scroll;">
+    <div class="card-body">
+        {% for message in messages %}
+            {% if message.sender == request.user %}
+                <!-- 自分のメッセージは右寄せ -->
+                <div class="d-flex justify-content-end mb-3">
+                    <div class="bg-primary text-white p-2 rounded" style="max-width: 70%;">
+                        <p class="mb-0">{{ message.content|linebreaksbr }}</p>
+                        <small class="text-white-50">{{ message.timestamp|date:"m/d H:i" }}</small>
+                    </div>
+                </div>
+            {% else %}
+                <!-- 他人のメッセージは左寄せ -->
+                <div class="d-flex justify-content-start mb-3">
+                    <div>
+                        <small class="text-muted">{{ message.sender.username }}</small>
+                        <div class="bg-light p-2 rounded" style="max-width: 70%;">
+                            <p class="mb-0">{{ message.content|linebreaksbr }}</p>
+                            <small class="text-muted">{{ message.timestamp|date:"m/d H:i" }}</small>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% empty %}
+            <p class="text-center text-muted">まだメッセージはありません。</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- メッセージ投稿フォーム -->
+<form method="post">
+    {% csrf_token %}
+    <div class="input-group">
+        <textarea name="content" class="form-control" rows="3" placeholder="メッセージを入力..."></textarea>
+        <button class="btn btn-primary" type="submit">送信</button>
+    </div>
+</form>
+
+<a href="{% url 'projects:project_detail' project.pk %}" class="btn btn-secondary mt-3">&laquo; プロジェクト詳細に戻る</a>
+{% endblock %}

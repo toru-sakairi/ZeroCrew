@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}「{{ project.title }}」への応募者一覧{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">「{{ project.title }}」への応募者一覧</h1>
+
+<div class="card">
+    <div class="card-body">
+        {% for app in applications %}
+        <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+            <div>
+                <p class="mb-1">
+                    <strong>応募者: <a href="{% url 'users:profile' app.applicant.pk %}">{{ app.applicant.username }}</a></strong>
+                </p>
+                <p class="text-muted small mb-1">応募日時: {{ app.applied_at|date:"Y/m/d H:i" }}</p>
+                <p class="mb-0">現在のステータス: <span class="badge bg-info text-dark">{{ app.get_status_display }}</span></p>
+            </div>
+            <div>
+                {% if app.status == 'pending' %}
+                <!-- ステータスが「申請中」の場合のみボタンを表示 -->
+                <form action="{% url 'projects:update_application_status' app.pk %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="approved">
+                    <button type="submit" class="btn btn-success btn-sm">承認</button>
+                </form>
+                <form action="{% url 'projects:update_application_status' app.pk %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="rejected">
+                    <button type="submit" class="btn btn-danger btn-sm">拒否</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <p>このプロジェクトにはまだ応募がありません。</p>
+        {% endfor %}
+    </div>
+</div>
+
+<a href="{% url 'projects:project_detail' project.pk %}" class="btn btn-secondary mt-3">&laquo; プロジェクト詳細に戻る</a>
+{% endblock %}

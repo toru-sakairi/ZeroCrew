@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <!-- プロフィールサイドバー -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                {% if profile.icon %}
+                    <img src="{{ profile.icon.url }}" class="rounded-circle mb-3" width="150" height="150" alt="icon">
+                {% else %}
+                    <!-- デフォルトアイコン画像などを表示しても良い -->
+                    <svg class="rounded-circle mb-3" width="150" height="150" xmlns="http://www.w3.org/2000/svg" role="img" preserveAspectRatio="xMidYMid slice" focusable="false"><rect width="100%" height="100%" fill="#868e96"></rect><text x="50%" y="50%" fill="#dee2e6" dy=".3em">No Image</text></svg>
+                {% endif %}
+                <h4 class="card-title">{{ user.username }}</h4>
+                <p class="card-text text-muted">{{ profile.bio|linebreaksbr }}</p>
+
+                <!-- 自分のプロフィールの場合のみ編集ボタンを表示 -->
+                {% if request.user == user %}
+                <a href="{% url 'users:profile_edit' %}" class="btn btn-primary">プロフィールを編集</a>
+                <a href="{% url 'users:application_status' %}" class="btn btn-outline-info w-100">応募状況を確認する</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <!-- 投稿したプロジェクト一覧 -->
+    <div class="col-md-8">
+        <h4>投稿したプロジェクト</h4>
+        <hr>
+        {% for project in user_projects %}
+            {% include 'projects/_project_card.html' with project=project %}
+        {% empty %}
+            <p>まだ投稿したプロジェクトはありません。</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
