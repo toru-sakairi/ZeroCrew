@@ -11,8 +11,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-import os # osをインポート
-from dotenv import load_dotenv # dotenvをインポート
+import os  # osをインポート
+from dotenv import load_dotenv  # dotenvをインポート
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -81,25 +81,56 @@ WSGI_APPLICATION = 'zerocrew.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-DATABASES = {
-    # postgresにしたからコメントアウト
-    #'default': {
-    #    'ENGINE': 'django.db.backends.sqlite3',
-    #    'NAME': BASE_DIR / 'db.sqlite3',
-    #}
-    
-    'default' : {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'zerocrew_db',      # ステップ1で作成したデータベース名
-        'USER': 'zerocrew_developer',     # ステップ1で作成したユーザー名
-        'PASSWORD': os.environ.get('DATABASE_PASSWORD'), # ステップ1で設定したパスワード
-        'HOST': 'localhost',         # 自分のPCで動かしているのでlocalhost
-        'PORT': '5432',              # PostgreSQLのデフォルトのポート番号
+# 開発時
+if DEBUG:
+    DATABASES = {
+        # postgresにしたからコメントアウト
+        # 'default': {
+        #    'ENGINE': 'django.db.backends.sqlite3',
+        #    'NAME': BASE_DIR / 'db.sqlite3',
+        # }
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'zerocrew_db',      # ステップ1で作成したデータベース名
+            'USER': 'zerocrew_developer',     # ステップ1で作成したユーザー名
+            'PASSWORD': os.environ.get('DATABASE_PASSWORD'),  # ステップ1で設定したパスワード
+            'HOST': 'localhost',         # 自分のPCで動かしているのでlocalhost
+            'PORT': '5432',              # PostgreSQLのデフォルトのポート番号
+        }
     }
-    
-}
+# 本番環境の設定
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'zerocrew_db',
+            'USER': 'zerocrew_admin',  # RDSのマスターユーザー名
+            'PASSWORD': os.environ.get('DATABASE_ADMIN_PASSWORD'),
+            'HOST': os.environ.get('DATABASE_HOST'),  # RDSのエンドポイント
+            'PORT': '5432',
+        }
+    }
+    # AWS設定
+    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = 'zerocrew-bucket-20250622' # ステップ1で作成したバケット名
+    AWS_S3_REGION_NAME = 'ap-northeast-1' # 東京リージョン
+    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+    AWS_DEFAULT_ACL = 'public-read' # アップロードしたファイルを公開設定にする
+    AWS_S3_OBJECT_PARAMETERS = {
+        'CacheControl': 'max-age=86400', # キャッシュの有効期限（秒）
+    }
 
+    # 静的ファイル(CSS, JS) の設定
+    STATIC_LOCATION = 'static'
+    STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{STATIC_LOCATION}/'
+    STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+    # メディアファイル(ユーザーがアップロードする画像) の設定
+    MEDIA_LOCATION = 'media'
+    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{MEDIA_LOCATION}/'
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
