@@ -17,7 +17,7 @@ from dotenv import load_dotenv  # dotenvをインポート
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ▼▼▼ .envファイルを読み込む処理を追加 ▼▼
+# ▼▼▼ .envファイルを読み込む処理を追加 ▼▼▼
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production

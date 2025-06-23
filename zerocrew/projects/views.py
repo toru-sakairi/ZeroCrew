@@ -14,7 +14,7 @@ from django.http import HttpResponseForbidden
 # ホームビュー(今のところ(2025_06_20)プロジェクト一覧にしている)
 # ログイン後のホーム画面で、投稿されたプロジェクトを一覧で表示する。
 # ListViewを継承することで、オブジェクトの一覧表示を簡単に実装している
-class HomeView(LoginRequiredMixin, ListView):
+class HomeView(ListView):
     model = Project
     
     # 表示するテンプレート（HTML）の指定

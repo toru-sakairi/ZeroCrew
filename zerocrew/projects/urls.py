@@ -4,6 +4,8 @@ from . import views
 
 app_name = "projects"
 urlpatterns = [
+    # LP（ランディングページ）
+    path('', views.home, name="home"),
     path("home/", views.home, name="home"),
     path("create/", views.project_create, name="project_create"),
     path("project<int:pk>", views.project_detail, name="project_detail"),
