@@ -33,6 +33,15 @@
         <hr>
         <h5 class="card-title">プロジェクト概要</h5>
         <p class="card-text" style="white-space: pre-wrap;">{{ project.outline }}</p>
+        <!-- 背景 -->
+        <hr>
+        <h5 class="card-title">背景・課題</h5>
+        <p class="card-text" style="white-space: pre-wrap;">{{ project.background }}</p>
+        <!-- ゴール -->
+        <hr>
+        <h5 class="card-title">目標・ゴール</h5>
+        <p class="card-text" style="white-space: pre-wrap;">{{ project.goal }}</p>
+        <hr>
         <!-- タグ機能の追加 -->
         {% if project.tags.all %}
         <hr>

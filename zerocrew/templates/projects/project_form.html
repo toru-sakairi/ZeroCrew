@@ -37,7 +37,7 @@
                 <form method="post" novalidate>
                     {% csrf_token %}
 
-                    <!-- 他フィールド（title, outline）はそのまま -->
+                    <!-- タイトル -->
                     <div class="mb-3">
                         <label for="{{ form.title.id_for_label }}" class="form-label">{{ form.title.label }}</label>
                         {{ form.title }}
@@ -45,6 +45,14 @@
                             <div class="alert alert-danger mt-1 p-2">{{ error }}</div>
                         {% endfor %}
                     </div>
+                    <!-- 2. プロジェクト画像 (新規追加) -->
+                    <div class="mb-3">
+                        <label for="{{ form.image.id_for_label }}" class="form-label">{{ form.image.label }}</label>
+                        {{ form.image }}
+                        {% if form.image.help_text %}<div class="form-text">{{ form.image.help_text }}</div>{% endif %}
+                        {% for error in form.image.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                    <!-- 3. プロジェクト概要 -->
                     <div class="mb-3">
                         <label for="{{ form.outline.id_for_label }}" class="form-label">{{ form.outline.label }}</label>
                         {{ form.outline }}
@@ -52,6 +60,22 @@
                             <div class="alert alert-danger mt-1 p-2">{{ error }}</div>
                         {% endfor %}
                     </div>
+                    
+                    <!-- 4. 背景・課題 (新規追加) -->
+                    <div class="mb-3">
+                        <label for="{{ form.background.id_for_label }}" class="form-label">{{ form.background.label }}</label>
+                        {{ form.background }}
+                        {% if form.background.help_text %}<div class="form-text">{{ form.background.help_text }}</div>{% endif %}
+                        {% for error in form.background.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+
+                    <!-- 5. 目標・ゴール (新規追加) -->
+                    <div class="mb-3">
+                        <label for="{{ form.goal.id_for_label }}" class="form-label">{{ form.goal.label }}</label>
+                        {{ form.goal }}
+                        {% if form.goal.help_text %}<div class="form-text">{{ form.goal.help_text }}</div>{% endif %}
+                        {% for error in form.goal.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>                    
 
                     <!-- ▼▼▼▼▼ タグ入力欄をループから分離し、特別に記述します ▼▼▼▼▼ -->
                     <div class="mb-3">
