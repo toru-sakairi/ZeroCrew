@@ -4,6 +4,7 @@ from django.conf import settings # settings.AUTH_USER_MODEL を使うため
 # ユーザー登録時に自動でProfileも作成する仕組み
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from taggit.managers import TaggableManager
 
 # ユーザーのプロフィールモデル
 class Profile(models.Model):
@@ -22,6 +23,9 @@ class Profile(models.Model):
     # upload_to = 'icons/'：アップロードされた画像ファイルが'meta/icons/'ディレクトリに保存される
     # blank=True, null = True：必須ではないことを指す
     icon = models.ImageField(upload_to='icons/', blank=True, null=True, verbose_name='アイコン')
+    
+    # タグ機能を追加
+    tags = TaggableManager(verbose_name="スキル・役割", blank = True)
     
     # 管理画面での表示
     def __str__(self):

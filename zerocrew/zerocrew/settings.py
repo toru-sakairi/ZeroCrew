@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     # 作成したアプリをここに追加
     'users.apps.UsersConfig',
     'projects.apps.ProjectsConfig',
+    # タグをつける機能 django-taggit
+    'taggit',
 ]
 
 MIDDLEWARE = [

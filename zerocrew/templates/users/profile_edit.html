@@ -1,21 +1,73 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}プロフィール編集{% endblock %}
+{% block title %}プロフィール編集 - ZeroCrew{% endblock %}
+
+{% block extra_head %}
+<!-- ▼▼▼ このページだけで使うTagifyのCSS/JSを読み込みます ▼▼▼ -->
+<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.polyfills.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet" type="text/css" />
+<!-- ▲▲▲ ここまで ▲▲▲ -->
+<style>
+    /* Tagifyの見た目をBootstrapに合わせるためのスタイル調整 */
+    .tagify{
+        --tags-border-color: #dee2e6;
+        border-radius: .25rem;
+    }
+    .tagify:hover{
+        --tags-border-color: #86b7fe;
+    }
+    .tagify--focus{
+        --tags-border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h3>プロフィール編集</h3>
+                <h3 class="h4 mb-0">プロフィール編集</h3>
             </div>
             <div class="card-body">
-                <!-- enctype="multipart/form-data" は画像アップロードに必須 -->
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    {{ user_form.as_p }}
-                    {{ profile_form.as_p }}
-                    <button type="submit" class="btn btn-primary">更新する</button>
+
+                    <!-- user_formのフィールド -->
+                    <div class="mb-3">
+                        <label for="{{ user_form.username.id_for_label }}" class="form-label">{{ user_form.username.label }}</label>
+                        {{ user_form.username }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ user_form.email.id_for_label }}" class="form-label">{{ user_form.email.label }}</label>
+                        {{ user_form.email }}
+                    </div>
+                    <hr>
+                    <!-- profile_formのフィールド -->
+                    <div class="mb-3">
+                        <label for="{{ profile_form.bio.id_for_label }}" class="form-label">{{ profile_form.bio.label }}</label>
+                        {{ profile_form.bio }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ profile_form.icon.id_for_label }}" class="form-label">{{ profile_form.icon.label }}</label>
+                        {{ profile_form.icon }}
+                    </div>
+
+                    <!-- ▼▼▼▼▼ タグ入力欄（ここを修正しました） ▼▼▼▼▼ -->
+                    <div class="mb-3">
+                        <label for="{{ profile_form.tags.id_for_label }}" class="form-label">{{ profile_form.tags.label }}</label>
+                        {# 既存のタグをカンマ区切りの文字列に変換してvalueにセットします #}
+                        <input name="tags" id="{{ profile_form.tags.id_for_label }}" value="{% for tag in profile_form.instance.tags.all %}{{ tag.name }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                        {% if profile_form.tags.help_text %}
+                            <div class="form-text">{{ profile_form.tags.help_text }}</div>
+                        {% endif %}
+                    </div>
+                    <!-- ▲▲▲▲▲ ここまで ▲▲▲▲▲ -->
+                    
+                    <button type="submit" class="btn btn-primary w-100">更新する</button>
                 </form>
             </div>
         </div>
@@ -23,19 +75,20 @@
 </div>
 
 <script>
-    // フォームのinput要素にBootstrapのクラスを自動で追加する
-    document.addEventListener('DOMContentLoaded', function() {
-        // 既存のスクリプトとほぼ同じ
-        const formInputs = document.querySelectorAll('form input, form textarea, form select');
-        formInputs.forEach(function(input) {
-            // fileタイプのinputは除外
-            if (input.type !== 'checkbox' && input.type !== 'file') {
-                input.classList.add('form-control');
-            } else if (input.type === 'file') {
-                input.classList.add('form-control-file');
-            }
-        });
+document.addEventListener('DOMContentLoaded', function() {
+    // Bootstrapのクラスを自動で追加
+    document.querySelectorAll('form input[type="text"], form input[type="email"], form textarea').forEach(function(input) {
+        if(input.name !== 'tags'){
+            input.classList.add('form-control');
+        }
     });
+    document.querySelectorAll('form input[type="file"]').forEach(function(input) {
+        input.classList.add('form-control-file');
+    });
+
+    // Tagifyを初期化
+    var input = document.querySelector('input[name=tags]');
+    new Tagify(input);
+});
 </script>
 {% endblock %}
-
