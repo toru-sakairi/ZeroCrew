@@ -59,7 +59,7 @@ class RegisterView(CreateView):
         # フォームを保存し、ユーザーオブジェクトを取得
         user = form.save()
         # 作成したユーザーでそのままログイン処理を行う
-        auth_login(self.request, user)
+        login(self.request, user)
         messages.success(self.request, 'ユーザー登録が完了しました。')
         # 親クラスのform_validを呼び出し、success_urlにリダイレクトさせる
         return super().form_valid(form)

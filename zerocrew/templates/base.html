@@ -32,7 +32,7 @@
                             <a class="nav-link" href="{% url 'users:profile' user.pk %}">マイページ</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">ログアウト</a> {# 将来的にログアウト機能を実装 #}
+                            <a class="nav-link" href="{% url 'projects:logout' %}">ログアウト</a> 
                         </li>
                     {% else %}
                         <li class="nav-item">

@@ -191,7 +191,6 @@ class ProjectChatView(LoginRequiredMixin, UserPassesTestMixin, View):
             )
         return redirect('projects:project_chat', pk=pk)
     
-
 # .as_view()を使って、各クラスベースビューを関数ベースビューのようにURLconfで使えるようにする
 home = HomeView.as_view()
 project_create = ProjectCreateView.as_view()
