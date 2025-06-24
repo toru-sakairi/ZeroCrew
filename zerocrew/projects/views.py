@@ -191,6 +191,27 @@ class ProjectChatView(LoginRequiredMixin, UserPassesTestMixin, View):
             )
         return redirect('projects:project_chat', pk=pk)
     
+# タグ機能のクラス
+class TaggedProjectListView(ListView):
+    model = Project
+    template_name = 'projects/project_list_by_tag.html'
+    context_object_name = 'projects'
+    paginate_by = 10 # ページネーション（任意）
+
+    def get_queryset(self):
+        # URLからタクスラッグを取得
+        tag_slug = self.kwargs.get('tag_slug')
+        # そのタグを持つプロジェクトをフィルタリング
+        return Project.objects.filter(tags__slug=tag_slug).order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # テンプレートにタグの名前も渡す
+        context['tag_name'] = self.kwargs.get('tag_slug')
+        return context
+
+
+    
 # .as_view()を使って、各クラスベースビューを関数ベースビューのようにURLconfで使えるようにする
 home = HomeView.as_view()
 project_create = ProjectCreateView.as_view()
@@ -199,3 +220,4 @@ apply_for_project = ApplyForProjectView.as_view()
 applicant_list = ApplicantListView.as_view()
 update_application_status = UpdateApplicationStatusView.as_view()
 project_chat = ProjectChatView.as_view()
+tagged_project_list = TaggedProjectListView.as_view()

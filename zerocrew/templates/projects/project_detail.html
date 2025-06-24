@@ -33,6 +33,18 @@
         <hr>
         <h5 class="card-title">プロジェクト概要</h5>
         <p class="card-text" style="white-space: pre-wrap;">{{ project.outline }}</p>
+        <!-- タグ機能の追加 -->
+        {% if project.tags.all %}
+        <hr>
+        <div>
+            <strong>タグ：</strong>
+            {% for tag in project.tags.all %}
+            <a href="{% url 'projects:project_list_by_tag' tag.slug %}" class="tag">
+                {{ tag.name }}
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
     </div>
     <div class="card-footer">
         <a href="{% url 'projects:home' %}" class="btn btn-secondary">&laquo; プロジェクト一覧に戻る</a>

@@ -1,6 +1,7 @@
 # プロジェクトモデル
 from django.db import models
 from django.conf import settings
+from taggit.managers import TaggableManager
 
 # オリジネーターが投稿するプロジェクトを定義するモデル
 class Project(models.Model):
@@ -20,6 +21,9 @@ class Project(models.Model):
     
     # 更新日時：このプロジェクトが更新されるたびに、その日時を自動で記録。
     updated_at = models.DateTimeField(auto_now=True)
+    
+    # タグ機能の追加 django-taggitを使って、追加するだけでタグをつけられるようにする
+    tags = TaggableManager(blank=True, verbose_name='タグ')
     
     # 管理画面などで表示される際の、このオブジェクトの文字列表現。
     def __str__(self):

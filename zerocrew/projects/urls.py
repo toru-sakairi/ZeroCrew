@@ -15,4 +15,5 @@ urlpatterns = [
     path("project/<int:pk>/applicants/", views.applicant_list, name="applicant_list"),
     path("application/<int:pk>/update/", views.update_application_status, name="update_application_status"),
     path("project/<int:pk>/chat/", views.project_chat, name="project_chat"),
+    path('tags/<str:tag_slug>/', views.tagged_project_list, name='project_list_by_tag'),
 ]

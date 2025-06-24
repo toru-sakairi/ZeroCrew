@@ -1,8 +1,19 @@
 <div class="card mb-3">
     <div class="card-body">
         <h5 class="card-title"><a href="{% url 'projects:project_detail' project.pk %}">{{ project.title }}</a></h5>
-        <h6 class="card-subtitle mb-2 text-muted">投稿者: <a href="{% url 'users:profile' project.user.pk %}">{{ project.user.username }}</a> | {{ project.created_at|date:"Y/m/d" }}</h6>
+        <h6 class="card-subtitle mb-2 text-muted">投稿者: <a href="{% url 'users:profile' project.user.pk %}">
+            {{ project.user.username }}</a> | {{ project.created_at|date:"Y/m/d" }}</h6>
         <p class="card-text">{{ project.outline|truncatewords:40 }}</p>
+
+        <!--タグ機能-->
+        <div class="mb-2">
+            {% for tag in project.tags.all %}
+            <a href="{% url 'projects:project_list_by_tag' tag.slug %}" class="tag">
+                {{ tag.name }}
+            </a>
+            {% endfor %}
+        </div>
+
         <a href="{% url 'projects:project_detail' project.pk %}" class="card-link">詳細を見る</a>
     </div>
 </div>
