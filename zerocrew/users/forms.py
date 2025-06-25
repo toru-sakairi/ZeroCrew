@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Profile
+from .models import Profile, DirectMessage
 import json
 
 
@@ -44,3 +44,20 @@ class ProfileUpdateForm(forms.ModelForm):
             if isinstance(raw_tags, str):
                 return [tag.strip() for tag in raw_tags.split(',') if tag.strip()]
             return []
+
+
+class DirectMessageForm(forms.ModelForm):
+    class Meta:
+        model = DirectMessage
+        fields = ['content']
+        widgets = {
+            'content':forms.Textarea(attrs={
+                'class':'form-control',
+                'rows': '3',
+                'placeholder': 'メッセージを入力...',
+            })
+        }
+        labels={
+            'content':'',
+        }
+    

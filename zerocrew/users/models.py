@@ -42,3 +42,45 @@ class Profile(models.Model):
 def create_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
+        
+# ユーザー間の会話を表す
+class Conversation(models.Model):
+    participants = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='conversations',
+        verbose_name='参加者'
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='作成日時')
+    updated_at = models.DateTimeField(auto_now = True, verbose_name='最終更新日時')
+    
+    class Meta:
+        ordering = ['-updated_at']
+        
+    def __str__(self):
+        user_list = [user.username for user in self.participants.all()]
+        return f"Conversation between{','.join(user_list)}"
+    
+# ここのダイレクトメッセージを表すモデル
+class DirectMessage(models.Model):
+    conversation = models.ForeignKey(
+        Conversation,
+        on_delete = models.CASCADE,
+        related_name='messages',
+        verbose_name='会話'
+    )
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='sent_direct_messages',
+        verbose_name='送信者'
+    )
+    content = models.TextField(verbose_name='内容')
+    timestamp = models.DateTimeField(auto_now_add=True, verbose_name='送信日時')
+    # 拡張機能として一応残しておく
+    is_read=models.BooleanField(default=False, verbose_name='既読フラグ')
+    
+    class Meta:
+        ordering = ['timestamp']
+        
+    def __str__(self):
+        return f"Form{self.sender.username} at {self.timestamp:%Y-%m-%d %H%M}"

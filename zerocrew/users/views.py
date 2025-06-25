@@ -1,7 +1,7 @@
 # userアプリケーション内のレスポンスを生成する
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View, generic
-from django.views.generic import ListView, CreateView
+from django.views.generic import ListView, CreateView, DetailView
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login as auth_login
 from django.urls import reverse_lazy
@@ -10,9 +10,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib import messages
 
-from .models import Profile
+from .models import Profile, Conversation, DirectMessage
 from projects.models import Application
-from .forms import UserUpdateForm, ProfileUpdateForm
+from .forms import UserUpdateForm, ProfileUpdateForm, DirectMessageForm
 
 
 # ログインビュー
@@ -67,20 +67,27 @@ class RegisterView(CreateView):
         
 # プロフィール表示ビュー
 # ユーザーのプロフィールページを表示する。マイページと、他ユーザーのプロフィールページの両方を兼ねる
+# プロフィール表示ビュー
 class ProfileView(LoginRequiredMixin, View):
     def get(self, request, pk, *args, **kwargs):
-        # ユーザーのpkを使って、表示対象のユーザーを取得
-        user = User.objects.get(pk = pk)
-        # そのユーザーに紐づくプロフィールを取得
-        profile = Profile.objects.get(user = user)
-        # （VSCode）projectsがエラーになるが、これはDjangoの方でやってくれると思うので、大丈夫だと
+        # [修正] userオブジェクトは get_object_or_404 を使うとより安全です
+        user = get_object_or_404(User, pk=pk)
+        profile = Profile.objects.get(user=user)
         user_projects = user.projects.all().order_by('-created_at')
         
         context = {
-            'user':user,
-            'profile':profile,
-            'user_projects':user_projects,
+            'user': user,
+            'profile': profile,
+            'user_projects': user_projects,
         }
+
+        # ▼▼▼ ここにロジックを追加 ▼▼▼
+        # 表示しているプロフィールが、ログイン中のユーザー自身のものかを確認
+        if request.user == user:
+            # 自分のプロフィールの場合、進行中の会話リストをコンテキストに追加
+            context['user_conversations'] = request.user.conversations.all().order_by('-updated_at')
+        # ▲▲▲ ここまで ▲▲▲
+
         return render(request, 'users/profile.html', context)
         
 # プロフィール編集ビュー：自身のプロフィール情報を編集するページの表示（POST）と、更新処理（POST）を担う
@@ -127,10 +134,75 @@ class ApplicationStatusView(LoginRequiredMixin, ListView):
         # ユーザーが応募者であるものだけに絞り込む
         return Application.objects.filter(applicant=self.request.user).order_by('-applied_at')
     
+class ConversationListView(LoginRequiredMixin, ListView):
+    """自分が参加している会話の一覧（受信箱）を表示するビュー。"""
+    model = Conversation
+    template_name = 'users/conversation_list.html'
+    context_object_name = 'conversations'
+    
+    def get_queryset(self):
+        # 自分が参加している会話のみを取得する
+        return self.request.user.conversations.all().order_by('-updated_at')
+
+
+class ConversationDetailView(LoginRequiredMixin, DetailView):
+    """特定の会話のメッセージ詳細を表示するビュー。"""
+    model = Conversation
+    template_name = 'users/conversation_detail.html'
+    context_object_name = 'conversation'
+
+    def get_queryset(self):
+        # 自分が参加している会話のみアクセス可能にする
+        return self.request.user.conversations.all()
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = DirectMessageForm()
+        context['other_user'] = self.object.participants.exclude(pk=self.request.user.pk).first()
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        form = DirectMessageForm(request.POST)
+        if form.is_valid():
+            conversation = self.get_object()
+            message = form.save(commit=False)
+            message.sender = request.user
+            message.conversation = conversation
+            message.save()
+            conversation.save()
+            return redirect('users:conversation_detail', pk = conversation.pk)
+        else:
+            return self.get(request, *args, **kwargs)
+
+class StartConversationView(LoginRequiredMixin, View):
+    """
+    指定したユーザーとの会話を開始するか、既存の会話にリダイレクトするビュー。
+    """
+    def get(self, request, user_id):
+        target_user = get_object_or_404(User, pk=user_id)
+        
+        if target_user == request.user:
+            return redirect('users:profile', pk=request.user.pk)
+        
+        conversation = Conversation.objects.filter(
+            participants=request.user
+        ).filter(
+            participants=target_user
+        ).first()
+        
+        if conversation:
+            return redirect('user:conversation_detail', pk=conversation.pk)
+        else:
+            new_conversation = Conversation.objects.create()
+            new_conversation.participants.add(request.user, target_user)
+            return redirect('users:conversation_detail', pk=new_conversation.pk)
+        
     
 login = LoginView.as_view()
 register = RegisterView.as_view()
 profile = ProfileView.as_view()
 profile_edit = ProfileEditView.as_view()
 application_status = ApplicationStatusView.as_view()
-
+conversationList = ConversationListView.as_view()
+conversationDetail = ConversationDetailView.as_view()
+startConversation = StartConversationView.as_view()

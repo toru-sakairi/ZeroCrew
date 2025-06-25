@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {{ other_user.username }}さんとのメッセージ - ZeroCrew
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <!-- 会話相手の情報を表示 -->
+        <a href="{% url 'users:profile' other_user.pk %}" class="text-decoration-none text-dark fw-bold">
+            {% if other_user.profile.icon %}
+                <img src="{{ other_user.profile.icon.url }}" alt="{{ other_user.username }}" class="rounded-circle" width="30" height="30">
+            {% else %}
+                <img src="https://placehold.co/100x100/EFEFEF/AAAAAA?text={{ other_user.username.0 }}" alt="{{ other_user.username }}" class="rounded-circle" width="30" height="30">
+            {% endif %}
+            {{ other_user.username }}
+        </a>
+    </div>
+
+    <div class="card-body" style="height: 60vh; overflow-y: auto;">
+        <!-- メッセージ履歴 -->
+        {% for message in conversation.messages.all %}
+            <div class="d-flex mb-3 {% if message.sender == user %}justify-content-end{% else %}justify-content-start{% endif %}">
+                <div class="{% if message.sender == user %}text-end{% endif %}">
+                    <!-- 吹き出し -->
+                    <div class="p-2 rounded {% if message.sender == user %}bg-primary text-white{% else %}bg-light{% endif %}" style="max-width: 400px;">
+                        {{ message.content|linebreaksbr }}
+                    </div>
+                    <!-- 送信時刻 -->
+                    <div class="small text-muted mt-1">{{ message.timestamp|date:"m/d H:i" }}</div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="card-footer">
+        <!-- メッセージ投稿フォーム -->
+        <form method="post">
+            {% csrf_token %}
+            <div class="input-group">
+                {{ form.content }}
+                <button class="btn btn-primary" type="submit">送信</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

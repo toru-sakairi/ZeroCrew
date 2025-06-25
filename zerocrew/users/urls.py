@@ -9,4 +9,7 @@ urlpatterns = [
     path("profile/<int:pk>/", views.profile, name="profile"),
     path("profile/edit/", views.profile_edit, name="profile_edit"),
     path("applications/", views.application_status, name="application_status"),
+    path("messages/", views.conversationList, name='conversation_list'),
+    path("messages/<int:pk>/", views.conversationDetail, name="conversation_detail"),
+    path("messages/start/<int:user_id>/", views.startConversation,name="start_conversation"),
 ]
