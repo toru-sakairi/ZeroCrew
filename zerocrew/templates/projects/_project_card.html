@@ -1,19 +1,45 @@
-<div class="card mb-3">
-    <div class="card-body">
-        <h5 class="card-title"><a href="{% url 'projects:project_detail' project.pk %}">{{ project.title }}</a></h5>
-        <h6 class="card-subtitle mb-2 text-muted">投稿者: <a href="{% url 'users:profile' project.user.pk %}">
-            {{ project.user.username }}</a> | {{ project.created_at|date:"Y/m/d" }}</h6>
-        <p class="card-text">{{ project.outline|truncatewords:40 }}</p>
+{% comment %}
+汎用的なプロジェクトカードのコンポーネント。
+このテンプレートを include する際は、'project' という名前のオブジェクトを渡してください。
+例: {% include 'projects/_project_card.html' with project=project %}
+{% endcomment %}
 
-        <!--タグ機能-->
-        <div class="mb-2">
+<div class="card h-100 shadow-sm">
+    <!-- 画像エリア：画像自体に詳細ページへのリンクを設定 -->
+    <a href="{% url 'projects:project_detail' project.pk %}">
+        {% if project.image %}
+            <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}" style="height: 200px; object-fit: cover;">
+        {% else %}
+            <!-- 画像がない場合はプレースホルダーを表示 -->
+            <img src="https://placehold.co/600x400/EFEFEF/AAAAAA?text=No+Image" class="card-img-top" alt="No Image" style="height: 200px; object-fit: cover;">
+        {% endif %}
+    </a>
+
+    <!-- カード本体：d-flexとflex-columnで要素の配置を柔軟に制御 -->
+    <div class="card-body d-flex flex-column">
+        <!-- タイトル -->
+        <h5 class="card-title">{{ project.title }}</h5>
+        
+        <!-- 投稿者情報と日付：古いテンプレートのリンク機能と日付表示を統合 -->
+        <p class="card-text text-muted small mb-2">
+            By: <a href="{% url 'users:profile' project.user.pk %}" class="text-decoration-none">{{ project.user.username }}</a>
+            <span class="ms-2">| {{ project.created_at|date:"Y/m/d" }}</span>
+        </p>
+
+        <!-- 概要：flex-grow-1で高さを可変にし、カードの高さを揃える -->
+        <p class="card-text flex-grow-1">{{ project.outline|truncatechars:80 }}</p>
+        
+        <!-- タグエリア：mt-autoでカードの最下部に配置 -->
+        <div class="mt-auto">
             {% for tag in project.tags.all %}
-            <a href="{% url 'projects:project_list_by_tag' tag.slug %}" class="tag">
-                {{ tag.name }}
-            </a>
+                <!-- 古いテンプレートのリンク機能を維持しつつ、Bootstrapのbadgeスタイルを適用 -->
+                <a href="{% url 'projects:project_list_by_tag' tag.slug %}" class="badge bg-secondary text-decoration-none fw-normal me-1">{{ tag.name }}</a>
             {% endfor %}
         </div>
+    </div>
 
-        <a href="{% url 'projects:project_detail' project.pk %}" class="card-link">詳細を見る</a>
+    <!-- フッター：詳細ボタンを配置 -->
+    <div class="card-footer bg-white border-top-0 pt-0">
+         <a href="{% url 'projects:project_detail' project.pk %}" class="btn btn-primary w-100">詳細を見る</a>
     </div>
 </div>

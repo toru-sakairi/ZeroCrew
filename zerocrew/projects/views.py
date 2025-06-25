@@ -10,6 +10,7 @@ from django.urls import reverse_lazy
 from .models import Project, Application, Message
 from .forms import ProjectForm
 from django.http import HttpResponseForbidden
+from django.db.models import Q 
 
 # ホームビュー(今のところ(2025_06_20)プロジェクト一覧にしている)
 # ログイン後のホーム画面で、投稿されたプロジェクトを一覧で表示する。
@@ -209,8 +210,36 @@ class TaggedProjectListView(ListView):
         # テンプレートにタグの名前も渡す
         context['tag_name'] = self.kwargs.get('tag_slug')
         return context
+    
+# 検索機能
+class SearchView(ListView):
+    model = Project
+    template_name = 'projects/search_results.html'
+    context_object_name = 'projects'
+    paginate_by = 10 # 一ページに表示するプロジェクト数
+    
+    def get_queryset(self):
+        # 'q'という名前で送られてきた検索キーワードを取得
+        query = self.request.GET.get('q')
+        
+        if query:
+            queryset = Project.objects.filter(
+                Q(title__icontains=query) |
+                Q(outline__icontains=query) |
+                Q(background__icontains=query) |
+                Q(goal__icontains=query) |
+                Q(tags__name__icontains=query) # タグの名前で検索
+            ).distinct().order_by('-created_at') # 重複を除外し、新しい順に並べる
+        else:
+            queryset = Project.objects.none()
+            
+        return queryset
 
-
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['query'] = self.request.GET.get('q', '')
+        return context
+        
     
 # .as_view()を使って、各クラスベースビューを関数ベースビューのようにURLconfで使えるようにする
 home = HomeView.as_view()
@@ -221,3 +250,4 @@ applicant_list = ApplicantListView.as_view()
 update_application_status = UpdateApplicationStatusView.as_view()
 project_chat = ProjectChatView.as_view()
 tagged_project_list = TaggedProjectListView.as_view()
+searchView = SearchView.as_view()

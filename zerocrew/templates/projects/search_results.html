@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}「{{ query }}」の検索結果 - ZeroCrew{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">
+        {% if query %}
+            「<span class="text-primary">{{ query }}</span>」の検索結果
+        {% else %}
+            プロジェクトを検索
+        {% endif %}
+    </h2>
+
+    {% if projects %}
+        <p class="text-muted mb-4">{{ projects.count }}件のプロジェクトが見つかりました。</p>
+        
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            {% for project in projects %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm">
+                        {% if project.image %}
+                            <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <img src="https://placehold.co/600x400/EFEFEF/AAAAAA?text=No+Image" class="card-img-top" alt="No Image" style="height: 200px; object-fit: cover;">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ project.title }}</h5>
+                            <p class="card-text text-muted small">オーナー: {{ project.user.username }}</p>
+                            <p class="card-text">{{ project.outline|truncatechars:80 }}</p>
+                            
+                            <div>
+                                {% for tag in project.tags.all %}
+                                    <span class="badge bg-secondary">{{ tag.name }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-top-0">
+                             <a href="{% url 'projects:project_detail' project.pk %}" class="btn btn-primary w-100">詳細を見る</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-warning" role="alert">
+            {% if query %}
+                「{{ query }}」に一致するプロジェクトは見つかりませんでした。別のキーワードでお試しください。
+            {% else %}
+                検索キーワードを入力してください。
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<!-- ここにページネーションを追加することも可能です -->
+
+{% endblock %}
