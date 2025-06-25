@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'projects.apps.ProjectsConfig',
     # タグをつける機能 django-taggit
     'taggit',
+    'storages',
 ]
 
 MIDDLEWARE = [
