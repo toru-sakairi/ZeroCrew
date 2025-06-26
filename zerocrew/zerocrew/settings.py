@@ -36,21 +36,36 @@ ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_STR.split(',') if host.s
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    # 作成したアプリをここに追加
-    'users.apps.UsersConfig',
-    'projects.apps.ProjectsConfig',
-    # タグをつける機能 django-taggit
-    'taggit',
-    'storages',
-]
-
+if DEBUG:
+    INSTALLED_APPS = [
+        'django.contrib.admin',
+        'django.contrib.auth',
+        'django.contrib.contenttypes',
+        'django.contrib.sessions',
+        'django.contrib.messages',
+        'django.contrib.staticfiles',
+        # 作成したアプリをここに追加
+        'users.apps.UsersConfig',
+        'projects.apps.ProjectsConfig',
+        # タグをつける機能 django-taggit
+        'taggit',
+    ]
+else:    
+    INSTALLED_APPS = [
+        'django.contrib.admin',
+        'django.contrib.auth',
+        'django.contrib.contenttypes',
+        'django.contrib.sessions',
+        'django.contrib.messages',
+        'django.contrib.staticfiles',
+        # 作成したアプリをここに追加
+        'users.apps.UsersConfig',
+        'projects.apps.ProjectsConfig',
+        # タグをつける機能 django-taggit
+        'taggit',
+        'storages',
+    ]
+    
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

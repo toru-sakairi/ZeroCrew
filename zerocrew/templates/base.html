@@ -28,14 +28,11 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
-                    <!-- 検索 -->
+                    <!-- 検索ページへのリンク -->
                     <li class="nav-item">
-                        <form class="d-flex me-3" method="get" action="{% url 'projects:search_results' %}">
-                            <input class="form-control form-control-sm me-2" type="search" name="q" placeholder="アイデアを検索..." aria-label="Search">
-                            <button class="btn btn-outline-secondary" type="submit">
-                                <i class="bi bi-search"></i>
-                            </button>
-                        </form>
+                        <a class="nav-link" href="{% url 'projects:search_results' %}">
+                            <i class="bi bi-search"></i> 検索
+                        </a>
                     </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">

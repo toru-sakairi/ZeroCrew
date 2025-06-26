@@ -1,59 +1,82 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}「{{ query }}」の検索結果 - ZeroCrew{% endblock %}
+{% block title %}
+{% if query %}
+「{{ query }}」の検索結果
+{% else %}
+プロジェクト検索
+{% endif %}
+- ZeroCrew
+{% endblock %}
 
 {% block content %}
+<!-- ▼▼▼ 検索フォームセクション ▼▼▼ -->
+<div class="search-form-section text-center mb-5">
+    <h1 class="mb-4">プロジェクトを探す</h1>
+    <!-- 検索フォーム -->
+    {# mx-autoで中央寄せし、max-widthで最大幅を指定 #}
+    <form method="get" action="{% url 'projects:search_results' %}" class="mx-auto" style="max-width: 700px;">
+        {# input-groupで入力欄とボタンを一体化 #}
+        <div class="input-group">
+            <input class="form-control" type="search" name="q" value="{{ query }}" placeholder="キーワードを入力 (例: AI アプリ開発)"
+                aria-label="Search" autocomplete="off">
+            <button class="btn btn-primary" type="submit">
+                <i class="bi bi-search"></i> 検索
+            </button>
+        </div>
+    </form>
+    <!-- /検索フォーム -->
+
+</div>
+
 <div class="container">
     <h2 class="mb-4">
         {% if query %}
-            「<span class="text-primary">{{ query }}</span>」の検索結果
+        「<span class="text-primary">{{ query }}</span>」の検索結果
         {% else %}
-            プロジェクトを検索
+        プロジェクトを検索
         {% endif %}
     </h2>
-
     {% if projects %}
-        <p class="text-muted mb-4">{{ projects.count }}件のプロジェクトが見つかりました。</p>
-        
-        <div class="row row-cols-1 row-cols-md-2 g-4">
-            {% for project in projects %}
-                <div class="col">
-                    <div class="card h-100 shadow-sm">
-                        {% if project.image %}
-                            <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}" style="height: 200px; object-fit: cover;">
-                        {% else %}
-                            <img src="https://placehold.co/600x400/EFEFEF/AAAAAA?text=No+Image" class="card-img-top" alt="No Image" style="height: 200px; object-fit: cover;">
-                        {% endif %}
-                        <div class="card-body">
-                            <h5 class="card-title">{{ project.title }}</h5>
-                            <p class="card-text text-muted small">オーナー: {{ project.user.username }}</p>
-                            <p class="card-text">{{ project.outline|truncatechars:80 }}</p>
-                            
-                            <div>
-                                {% for tag in project.tags.all %}
-                                    <span class="badge bg-secondary">{{ tag.name }}</span>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        <div class="card-footer bg-white border-top-0">
-                             <a href="{% url 'projects:project_detail' project.pk %}" class="btn btn-primary w-100">詳細を見る</a>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
+    <p class="text-muted mb-4">{{ page_obj.paginator.count }}件のプロジェクトが見つかりました。</p>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for project in projects %}
+        <div class="col">
+            {# ▼▼▼ ここで _project_card.html を呼び出す ▼▼▼ #}
+            {% include 'projects/_project_card.html' with project=project %}
         </div>
+        {% endfor %}
+    </div>
     {% else %}
-        <div class="alert alert-warning" role="alert">
-            {% if query %}
-                「{{ query }}」に一致するプロジェクトは見つかりませんでした。別のキーワードでお試しください。
-            {% else %}
-                検索キーワードを入力してください。
-            {% endif %}
-        </div>
+    <div class="alert alert-warning" role="alert">
+        {% if query %}
+        「{{ query }}」に一致するプロジェクトは見つかりませんでした。別のキーワードでお試しください。
+        {% else %}
+        検索キーワードを入力してください。
+        {% endif %}
+    </div>
     {% endif %}
 </div>
-
 <!-- ここにページネーションを追加することも可能です -->
+{% endblock %}
 
+<!-- サイドバーに並び替えやタグなどを表示する（広告もかな？） -->
+{# ▼▼▼ サイドバーブロック ▼▼▼ #}
+{% block sidebar %}
+<div class="sidebar-widget">
+    <h5 class="widget-title">人気のタグ</h5>
+    <div class="tags-area">
+        <span class="tag">Web開発</span>
+        <span class="tag">アプリ開発</span>
+        <span class="tag">デザイン</span>
+        <span class="tag">機械学習</span>
+        <span class="tag">ゲーム開発</span>
+    </div>
+</div>
+<div class="sidebar-widget mt-4">
+    <h5 class="widget-title">注目のユーザー</h5>
+    <p class="text-muted small">（この機能は今後実装します）</p>
+</div>
 {% endblock %}

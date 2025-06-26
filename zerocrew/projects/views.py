@@ -11,6 +11,10 @@ from .models import Project, Application, Message
 from .forms import ProjectForm
 from django.http import HttpResponseForbidden
 from django.db.models import Q 
+# --- 複数キーワード検索のために追加 ---
+import shlex
+from functools import reduce
+from operator import and_
 
 # ホームビュー(今のところ(2025_06_20)プロジェクト一覧にしている)
 # ログイン後のホーム画面で、投稿されたプロジェクトを一覧で表示する。
@@ -220,16 +224,33 @@ class SearchView(ListView):
     
     def get_queryset(self):
         # 'q'という名前で送られてきた検索キーワードを取得
-        query = self.request.GET.get('q')
-        
+        query = self.request.GET.get('q', None)
+            
         if query:
-            queryset = Project.objects.filter(
-                Q(title__icontains=query) |
-                Q(outline__icontains=query) |
-                Q(background__icontains=query) |
-                Q(goal__icontains=query) |
-                Q(tags__name__icontains=query) # タグの名前で検索
-            ).distinct().order_by('-created_at') # 重複を除外し、新しい順に並べる
+            # shlex.split() を使い、空白でキーワードを分割する。
+            # ""で囲まれたフレーズは一つのキーワードとして扱われる。
+            # 例: "Python AI" -> ['Python', 'AI']
+            keywords = shlex.split(query)
+            
+            if not keywords:
+                return Project.objects.none()
+
+            search_query = Q()
+            
+            for keyword in keywords:
+                keyword_query = (
+                    Q(title__icontains=keyword) |
+                    Q(outline__icontains=keyword) |
+                    Q(background__icontains=keyword) |
+                    Q(goal__icontains=keyword) |
+                    Q(tags__name__icontains=keyword) # タグの名前で検索
+                )
+                search_query &= keyword_query
+            
+            # functools.reduceとoperator.and_を使い、各キーワードのQオブジェクトをANDで結合
+            # (Q(...) | Q(...)) & (Q(...) | Q(...)) のようなクエリが生成される
+            queryset = Project.objects.filter(search_query).distinct().order_by('-created_at')
+            
         else:
             queryset = Project.objects.none()
             
