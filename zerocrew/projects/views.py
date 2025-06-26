@@ -6,11 +6,11 @@ from django.views import View
 from django.views.generic import CreateView, ListView, DetailView
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.urls import reverse_lazy
-from .models import Project, Application, Message
+from django.urls import reverse_lazy, reverse
+from .models import Project, Application, Message, Like
 from .forms import ProjectForm
-from django.http import HttpResponseForbidden
-from django.db.models import Q 
+from django.http import HttpResponseForbidden, HttpResponseRedirect
+from django.db.models import Q , Count
 # --- 複数キーワード検索のために追加 ---
 import shlex
 from functools import reduce
@@ -21,15 +21,16 @@ from operator import and_
 # ListViewを継承することで、オブジェクトの一覧表示を簡単に実装している
 class HomeView(ListView):
     model = Project
-    
     # 表示するテンプレート（HTML）の指定
     template_name = 'projects/home.html'
-    
     # テンプレート内で使う変数名の指定。project_listという名前でプロジェクトのリストをテンプレートに渡す。
     template_object_name = 'project_list'
-    
     # 表示順の指定。作成日時の新しい順に並べる
     ordering = ['-created_at']
+    
+    def get_queryset(self):
+        # annotateを使って、各プロジェクトにいいね数を付与してからテンプレートに渡す
+        return Project.objects.annotate(like_count=Count('like')).order_by('-created_at')
 
 # プロジェクト作成ビュー。新規プロジェクトを投稿するページ。CreateViewを継承することで、オブジェクトの作成フォームを簡単に実装できる。
 class ProjectCreateView(LoginRequiredMixin, CreateView):
@@ -57,6 +58,12 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         # まず親クラスのメソッドを呼び出して、基本的なコンテキストを取得
         context = super().get_context_data(**kwargs)
+        
+        # いいねに関する情報
+        project = self.get_object()
+        context['like_count'] = project.like_set.count()
+        if self.request.user.is_authenticated:
+            context['is_liked'] = project.like_set.filter(user=self.request.user).exists()
         
         # ログインユーザーがこのプロジェクトに応募済みかどうかのフラグを追加
         # (VSCode内)objectがエラーになっていると思うが、これはDjangoの方でちゃんと理解されるから大丈夫だと思われる
@@ -207,7 +214,7 @@ class TaggedProjectListView(ListView):
         # URLからタクスラッグを取得
         tag_slug = self.kwargs.get('tag_slug')
         # そのタグを持つプロジェクトをフィルタリング
-        return Project.objects.filter(tags__slug=tag_slug).order_by('-created_at')
+        return Project.objects.filter(tags__slug=tag_slug).annotate(like_count=Count('like')).order_by('-created_at')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -249,7 +256,7 @@ class SearchView(ListView):
             
             # functools.reduceとoperator.and_を使い、各キーワードのQオブジェクトをANDで結合
             # (Q(...) | Q(...)) & (Q(...) | Q(...)) のようなクエリが生成される
-            queryset = Project.objects.filter(search_query).distinct().order_by('-created_at')
+            queryset = Project.objects.filter(search_query).distinct().annotate(like_count=Count('like')).order_by('-created_at')
             
         else:
             queryset = Project.objects.none()
@@ -259,8 +266,22 @@ class SearchView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['query'] = self.request.GET.get('q', '')
+        popular_tags = Tag.objects.annotate(num_times=Count('taggit_taggeditem_items')).order_by('-num_times')[:15]
+        context['popular_tags'] = popular_tags
         return context
         
+        
+# いいね機能を行うビューを新しく追加
+class ToggleLikeView(LoginRequiredMixin, View):
+    def post(self, request, pk, *args, **kwargs):
+        project = get_object_or_404(Project, pk=pk)
+        
+        like, created = Like.objects.get_or_create(user=request.user, project=project)
+        
+        if not created:
+            like.delete()
+            
+        return HttpResponseRedirect(reverse('projects:project_detail', kwargs={'pk':project.pk}))
     
 # .as_view()を使って、各クラスベースビューを関数ベースビューのようにURLconfで使えるようにする
 home = HomeView.as_view()
@@ -272,3 +293,4 @@ update_application_status = UpdateApplicationStatusView.as_view()
 project_chat = ProjectChatView.as_view()
 tagged_project_list = TaggedProjectListView.as_view()
 searchView = SearchView.as_view()
+toggle_like = ToggleLikeView.as_view()

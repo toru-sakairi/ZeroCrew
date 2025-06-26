@@ -84,3 +84,28 @@ class DirectMessage(models.Model):
         
     def __str__(self):
         return f"Form{self.sender.username} at {self.timestamp:%Y-%m-%d %H%M}"
+    
+# フォロー機能
+class Follow(models.Model):
+    follower = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='following',
+        verbose_name='フォローしているユーザー',
+    )
+    
+    followed = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='followers',
+        verbose_name='フォローされているユーザー'
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='フォローした日時')
+    
+    class Meta:
+        unique_together = ('follower', 'followed')
+        ordering = ['-created_at']
+        
+    def __str__(self):
+        return f'{self.follower.username} follows {self.followed.username}'

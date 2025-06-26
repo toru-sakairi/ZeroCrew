@@ -38,6 +38,15 @@
         </div>
     </div>
 
+    <div class="card-footer bg-white border-top-0 pt-0 d-flex justify-content-between align-items-center">
+        {# ▼▼▼ いいね数の表示を追加 ▼▼▼ #}
+        <span class="text-danger small">
+            <i class="bi bi-heart-fill"></i>
+            {{ project.like_count|default:0 }} {# project.like_count はビューのannotateで付与 #}
+        </span>
+        <a href="{% url 'projects:project_detail' project.pk %}" class="btn btn-sm btn-outline-primary">詳細を見る</a>
+    </div>
+
     <!-- フッター：詳細ボタンを配置 -->
     <div class="card-footer bg-white border-top-0 pt-0">
          <a href="{% url 'projects:project_detail' project.pk %}" class="btn btn-primary w-100">詳細を見る</a>

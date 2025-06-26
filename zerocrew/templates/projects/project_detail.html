@@ -25,6 +25,27 @@
         </div>
     </div>
     <div class="card-body">
+
+        <div class="d-flex align-items-center mb-3">
+            <form action="{% url 'projects:toggle_like' project.pk %}" method="post" class="me-3">
+                {% csrf_token %}
+                {% if is_liked %}
+                    {# いいね済みの場合は、塗りつぶされたハートと「いいね解除」ボタン #}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-heart-fill"></i> いいね解除
+                    </button>
+                {% else %}
+                    {# まだの場合は、枠線のハートと「いいね」ボタン #}
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="bi bi-heart"></i> いいね
+                    </button>
+                {% endif %}
+            </form>
+            <span class="text-danger fw-bold">
+                <i class="bi bi-heart-fill"></i> {{ like_count }}
+            </span>
+        </div>
+
         <!-- プロジェクト詳細情報をここに記述 -->
         <p class="text-muted">
             投稿者: <a href="{% url 'users:profile' project.user.pk %}">{{ project.user.username }}</a> <br>
