@@ -4,13 +4,16 @@ from django.views import View, generic
 from django.views.generic import ListView, CreateView, DetailView
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login as auth_login
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.http import HttpResponseRedirect # 追加
 
-from .models import Profile, Conversation, DirectMessage
+from django.db.models import Count
+
+from .models import Profile, Conversation, DirectMessage, Follow
 from projects.models import Application
 from .forms import UserUpdateForm, ProfileUpdateForm, DirectMessageForm
 
@@ -73,15 +76,24 @@ class ProfileView(LoginRequiredMixin, View):
         # [修正] userオブジェクトは get_object_or_404 を使うとより安全です
         user = get_object_or_404(User, pk=pk)
         profile = Profile.objects.get(user=user)
-        user_projects = user.projects.all().order_by('-created_at')
+        user_projects = user.projects.all().annotate(like_count=Count('like')).order_by('-created_at')
+        
+        is_following = False
+        if request.user.is_authenticated and request.user != user:
+            is_following = Follow.objects.filter(follower=request.user, followed=user).exists()
+        
+        follower_count = user.followers.count()
+        following_count = user.following.count()
         
         context = {
             'user': user,
             'profile': profile,
             'user_projects': user_projects,
+            'is_following': is_following,
+            'follower_count': follower_count,
+            'following_count': following_count
         }
 
-        # ▼▼▼ ここにロジックを追加 ▼▼▼
         # 表示しているプロフィールが、ログイン中のユーザー自身のものかを確認
         if request.user == user:
             # 自分のプロフィールの場合、進行中の会話リストをコンテキストに追加
@@ -191,12 +203,30 @@ class StartConversationView(LoginRequiredMixin, View):
         ).first()
         
         if conversation:
-            return redirect('user:conversation_detail', pk=conversation.pk)
+            return redirect('users:conversation_detail', pk=conversation.pk)
         else:
             new_conversation = Conversation.objects.create()
             new_conversation.participants.add(request.user, target_user)
             return redirect('users:conversation_detail', pk=new_conversation.pk)
         
+        
+class ToggleFollowView(LoginRequiredMixin, View):
+    def post(self, request, pk, *args, **kwargs):
+        followed_user = get_object_or_404(User, pk=pk)
+        
+        if followed_user == request.user:
+            messages.warning(request, "自分自身をフォローすることはできません")
+            return redirect("users:profile", pk=pk)
+        
+        follow, created = Follow.objects.get_or_create(follower=request.user, followed=followed_user)
+        
+        if not created:
+            follow.delete()
+            messages.info(request, f"{followed_user.username}さんのフォローを解除しました。")
+        else:
+            messages.success(request, f"{followed_user.username}さんをフォローしました。")
+            
+        return HttpResponseRedirect(reverse('users:profile', kwargs={'pk': followed_user.pk}))
     
 login = LoginView.as_view()
 register = RegisterView.as_view()
@@ -206,3 +236,4 @@ application_status = ApplicationStatusView.as_view()
 conversationList = ConversationListView.as_view()
 conversationDetail = ConversationDetailView.as_view()
 startConversation = StartConversationView.as_view()
+toggle_follow = ToggleFollowView.as_view() # 新しいビューを追記

@@ -12,4 +12,5 @@ urlpatterns = [
     path("messages/", views.conversationList, name='conversation_list'),
     path("messages/<int:pk>/", views.conversationDetail, name="conversation_detail"),
     path("messages/start/<int:user_id>/", views.startConversation,name="start_conversation"),
+    path("follow/<int:pk>/", views.toggle_follow, name='toggle_follow'),
 ]
