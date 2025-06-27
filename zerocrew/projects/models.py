@@ -18,7 +18,7 @@ class Project(models.Model):
     )
 
     # タイトル：プロジェクトのタイトルで、最大100文字としている
-    title = models.CharField(max_length=100, verbose_name='タイトル')
+    title = models.CharField(max_length=50, verbose_name='タイトル')
     
     # 画像：プロジェクトのイメージを伝える画像（任意）
     image = models.ImageField(

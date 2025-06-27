@@ -8,10 +8,11 @@ urlpatterns = [
     # LP（ランディングページ）
     path('', views.home, name="home"),
     #path("home/", views.home, name="home"),
-    path("create/", views.project_create, name="project_create"),
     path("logout/", LogoutView.as_view(next_page=reverse_lazy('projects:home')), name='logout'),
     path("search/", views.searchView, name="search_results"),
-    path("project<int:pk>", views.project_detail, name="project_detail"),
+    path("project/create/", views.project_create, name="project_create"),
+    path('project<int:pk>/edit/', views.project_edit, name='project_edit'),
+    path("project<int:pk>/detail/", views.project_detail, name="project_detail"),
     path("project/<int:pk>/apply/", views.apply_for_project, name="apply_for_project"),
     path("project/<int:pk>/applicants/", views.applicant_list, name="applicant_list"),
     path("application/<int:pk>/update/", views.update_application_status, name="update_application_status"),

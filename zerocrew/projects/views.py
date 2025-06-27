@@ -3,7 +3,7 @@
 # ここでは、projectsアプリケーション内でのレスポンスを生成する。
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
-from django.views.generic import CreateView, ListView, DetailView
+from django.views.generic import CreateView, ListView, DetailView, UpdateView
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy, reverse
@@ -47,6 +47,27 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
         # 親クラスのform_validを呼び出して、オブジェクトを正式に保存する。
         return super().form_valid(form)
 
+# ▼▼▼ ProjectEditViewを修正 ▼▼▼
+class ProjectEditView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Project
+    form_class = ProjectForm
+    template_name = 'projects/project_edit.html' # 使用するテンプレートを指定
+
+    def test_func(self):
+        # アクセスしているユーザーがプロジェクトの投稿者であるかを確認
+        project = self.get_object()
+        return self.request.user == project.user
+
+    def get_success_url(self):
+        # 更新成功後は、編集したプロジェクトの詳細ページにリダイレクトする
+        messages.success(self.request, 'プロジェクトを更新しました。')
+        return reverse('projects:project_detail', kwargs={'pk': self.object.pk})
+
+    def get_context_data(self, **kwargs):
+        # テンプレートに渡すコンテキストデータを追加
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.get_object()
+        return context
 
 # プロジェクト詳細ビュー。個別のプロジェクトの詳細ページ。DetailViewを継承することで、単一オブジェクトの詳細表示を簡単に実装する。
 class ProjectDetailView(LoginRequiredMixin, DetailView):
@@ -287,6 +308,7 @@ class ToggleLikeView(LoginRequiredMixin, View):
 home = HomeView.as_view()
 project_create = ProjectCreateView.as_view()
 project_detail = ProjectDetailView.as_view()
+project_edit = ProjectEditView.as_view() # ▼▼▼ これを追加 ▼▼▼
 apply_for_project = ApplyForProjectView.as_view()
 applicant_list = ApplicantListView.as_view()
 update_application_status = UpdateApplicationStatusView.as_view()

@@ -1,0 +1,64 @@
+{% comment %}
+汎用的なプロジェクトカードのコンポーネント。
+このテンプレートを include する際は、'project' という名前のオブジェクトを渡してください。
+例: {% include 'projects/_project_card.html' with project=project %}
+{% endcomment %}
+
+<style>
+.project-title-clamp {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2; /* 表示する行数を2行に制限 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* 1行のタイトルと2行のタイトルでカードの高さが変わらないように、最小の高さを設定 */
+    min-height: 3em; /* h5のline-height(約1.5) × 2行分 */
+}
+</style>
+
+<div class="card h-100 shadow-sm">
+    <!-- 画像エリア -->
+    <a href="{% url 'projects:project_detail' project.pk %}">
+        {% if project.image %}
+            <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}" style="height: 200px; object-fit: cover;">
+        {% else %}
+            <img src="https://placehold.co/600x400/EFEFEF/AAAAAA?text=No+Image" class="card-img-top" alt="No Image" style="height: 200px; object-fit: cover;">
+        {% endif %}
+    </a>
+
+    <!-- カード本体 -->
+    <div class="card-body d-flex flex-column">
+        <h5 class="card-title project-title-clamp">{{ project.title }}</h5>
+        <p class="card-text text-muted small mb-2">
+            By: <a href="{% url 'users:profile' project.user.pk %}" class="text-decoration-none">{{ project.user.username }}</a>
+            <span class="ms-2">| {{ project.created_at|date:"Y/m/d" }}</span>
+        </p>
+        <p class="card-text flex-grow-1">{{ project.outline|truncatechars:80 }}</p>
+        <div class="mt-auto">
+            {% for tag in project.tags.all %}
+                <a href="{% url 'projects:project_list_by_tag' tag.slug %}" class="badge bg-secondary text-decoration-none fw-normal me-1">{{ tag.name }}</a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- フッターエリア：ボタンなどを配置 -->
+    <div class="card-footer bg-white border-top-0 pt-0 d-flex justify-content-between align-items-center">
+        <!-- いいね数 -->
+        <span class="text-danger small">
+            <i class="bi bi-heart-fill"></i>
+            {{ project.like_count|default:0 }}
+        </span>
+
+        <!-- ボタン類 -->
+        <div>
+            {# ▼▼▼ ここが追加した部分 ▼▼▼ #}
+            {# もし、ログインしているユーザーがプロジェクトの投稿者本人なら編集ボタンを表示 #}
+            {% if request.user == project.user %}
+                <a href="{% url 'projects:project_edit' project.pk %}" class="btn btn-sm btn-outline-secondary">編集</a>
+            {% endif %}
+            {# ▲▲▲ ここまで ▲▲▲ #}
+
+            <a href="{% url 'projects:project_detail' project.pk %}" class="btn btn-sm btn-outline-primary">詳細を見る</a>
+        </div>
+    </div>
+</div>

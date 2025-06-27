@@ -3,81 +3,88 @@
 {% block title %}{{ project.title }} - ZeroCrew{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h1 class="h3 mb-0">{{ project.title }}</h1>
-        <div>
-            {% if request.user == project.user %}
-            <a href="{% url 'projects:project_chat' project.pk %}" class="btn btn-success me-2">グループチャット</a>
-            <a href="{% url 'projects:applicant_list' project.pk %}" class="btn btn-info">応募者を管理</a>
-            {% else %}
-            {% if is_member %}
-            <a href="{% url 'projects:project_chat' project.pk %}" class="btn btn-success">グループチャットに参加</a>
-            {% elif is_applied %}
-            <a href="#" class="btn btn-info disabled">承認待ち</a>
-            {% else %}
-            <form action="{% url 'projects:apply_for_project' project.pk %}" method="post" class="d-inline">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-primary">このプロジェクトに応募する</button>
-            </form>
-            {% endif %}
-            {% endif %}
-        </div>
-    </div>
-    <div class="card-body">
-
-        <div class="d-flex align-items-center mb-3">
-            <form action="{% url 'projects:toggle_like' project.pk %}" method="post" class="me-3">
-                {% csrf_token %}
-                {% if is_liked %}
-                    {# いいね済みの場合は、塗りつぶされたハートと「いいね解除」ボタン #}
-                    <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-heart-fill"></i> いいね解除
-                    </button>
+<div class="container my-4">
+    <div class="card shadow-sm">
+        {# ▼▼▼ ヘッダーのレイアウトを修正 ▼▼▼ #}
+        <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+            {# タイトル。長い場合は折り返すように調整 #}
+            <h1 class="h3 mb-0 me-3">{{ project.title }}</h1>
+            
+            {# ボタンをグループ化し、横並びにする #}
+            <div class="d-flex flex-shrink-0">
+                {% if request.user == project.user %}
+                    <a href="{% url 'projects:project_edit' project.pk %}" class="btn btn-sm btn-outline-secondary me-2">編集</a>
+                    <a href="{% url 'projects:project_chat' project.pk %}" class="btn btn-sm btn-outline-success me-2">チャット</a>
+                    <a href="{% url 'projects:applicant_list' project.pk %}" class="btn btn-sm btn-outline-info">応募者管理</a>
                 {% else %}
-                    {# まだの場合は、枠線のハートと「いいね」ボタン #}
-                    <button type="submit" class="btn btn-outline-danger">
-                        <i class="bi bi-heart"></i> いいね
-                    </button>
+                    {% if is_member %}
+                        <a href="{% url 'projects:project_chat' project.pk %}" class="btn btn-success">グループチャットに参加</a>
+                    {% elif is_applied %}
+                        <a href="#" class="btn btn-info disabled">承認待ち</a>
+                    {% else %}
+                        <form action="{% url 'projects:apply_for_project' project.pk %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary">このプロジェクトに応募する</button>
+                        </form>
+                    {% endif %}
                 {% endif %}
-            </form>
-            <span class="text-danger fw-bold">
-                <i class="bi bi-heart-fill"></i> {{ like_count }}
-            </span>
+            </div>
         </div>
+        <div class="card-body p-4">
+            {# ▼▼▼ ここから2列レイアウト ▼▼▼ #}
+            <div class="row g-4 g-lg-5">
+                <!-- 左カラム：画像 & いいね -->
+                <div class="col-lg-5">
+                    {% if project.image %}
+                        <img src="{{ project.image.url }}" class="img-fluid rounded shadow-sm w-100 mb-3" alt="{{ project.title }}">
+                    {% else %}
+                        <img src="https://placehold.co/600x400/EFEFEF/AAAAAA?text=No+Image" class="img-fluid rounded shadow-sm w-100 mb-3" alt="No Image">
+                    {% endif %}
+                    
+                    <div class="d-flex align-items-center">
+                        <form action="{% url 'projects:toggle_like' project.pk %}" method="post" class="me-3">
+                            {% csrf_token %}
+                            <button type="submit" class="btn {% if is_liked %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                                <i class="bi {% if is_liked %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                                {% if is_liked %}いいね解除{% else %}いいね{% endif %}
+                            </button>
+                        </form>
+                        <span class="text-danger fw-bold fs-5">
+                            <i class="bi bi-heart-fill"></i> {{ like_count }}
+                        </span>
+                    </div>
+                </div>
 
-        <!-- プロジェクト詳細情報をここに記述 -->
-        <p class="text-muted">
-            投稿者: <a href="{% url 'users:profile' project.user.pk %}">{{ project.user.username }}</a> <br>
-            最終更新日: {{ project.updated_at|date:"Y年m月d日 H:i" }}
-        </p>
-        <hr>
-        <h5 class="card-title">プロジェクト概要</h5>
-        <p class="card-text" style="white-space: pre-wrap;">{{ project.outline }}</p>
-        <!-- 背景 -->
-        <hr>
-        <h5 class="card-title">背景・課題</h5>
-        <p class="card-text" style="white-space: pre-wrap;">{{ project.background }}</p>
-        <!-- ゴール -->
-        <hr>
-        <h5 class="card-title">目標・ゴール</h5>
-        <p class="card-text" style="white-space: pre-wrap;">{{ project.goal }}</p>
-        <hr>
-        <!-- タグ機能の追加 -->
-        {% if project.tags.all %}
-        <hr>
-        <div>
-            <strong>タグ：</strong>
-            {% for tag in project.tags.all %}
-            <a href="{% url 'projects:project_list_by_tag' tag.slug %}" class="tag">
-                {{ tag.name }}
-            </a>
-            {% endfor %}
+                <!-- 右カラム：テキスト情報 -->
+                <div class="col-lg-7">
+                    <p class="text-muted small border-bottom pb-3 mb-3">
+                        <strong>投稿者:</strong> <a href="{% url 'users:profile' project.user.pk %}">{{ project.user.username }}</a> <br>
+                        <strong>最終更新:</strong> {{ project.updated_at|date:"Y年m月d日" }}
+                    </p>
+
+                    <h5 class="card-title fw-bold">プロジェクト概要</h5>
+                    <p class="card-text mb-4" style="white-space: pre-wrap;">{{ project.outline }}</p>
+
+                    <h5 class="card-title fw-bold">背景・課題</h5>
+                    <p class="card-text mb-4" style="white-space: pre-wrap;">{{ project.background }}</p>
+
+                    <h5 class="card-title fw-bold">目標・ゴール</h5>
+                    <p class="card-text mb-4" style="white-space: pre-wrap;">{{ project.goal }}</p>
+                    
+                    {% if project.tags.all %}
+                    <div class="mt-4">
+                        <strong>タグ：</strong>
+                        {% for tag in project.tags.all %}
+                        <a href="{% url 'projects:project_list_by_tag' tag.slug %}" class="badge bg-light text-dark text-decoration-none fw-normal border me-1 p-2">{{ tag.name }}</a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-        {% endif %}
-    </div>
-    <div class="card-footer">
-        <a href="{% url 'projects:home' %}" class="btn btn-secondary">&laquo; プロジェクト一覧に戻る</a>
+        <div class="card-footer bg-light">
+            <a href="{% url 'projects:home' %}" class="btn btn-secondary">&laquo; プロジェクト一覧に戻る</a>
+        </div>
     </div>
 </div>
 {% endblock %}
