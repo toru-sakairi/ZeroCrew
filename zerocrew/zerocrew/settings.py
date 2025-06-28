@@ -116,6 +116,7 @@ if DEBUG:
             'PORT': '5432',              # PostgreSQLのデフォルトのポート番号
         }
     }
+        
     STATIC_URL = 'static/'
 
     STATICFILES_DIRS = [
@@ -146,6 +147,14 @@ else:
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',  # キャッシュの有効期限（秒）
     }
+
+    STATIC_URL = 'static/'
+
+    STATICFILES_DIRS = [
+        BASE_DIR / 'static',
+    ]
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = BASE_DIR / 'media'
 
     # 静的ファイル(CSS, JS) の設定
     STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
