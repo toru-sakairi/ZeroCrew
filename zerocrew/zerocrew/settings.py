@@ -28,8 +28,8 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = os.environ.get('DEBUG') == 'True'
 
 ALLOWED_HOSTS_STR = os.environ.get('ALLOWED_HOSTS', '')
-ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_STR.split(',') if host.strip()]
-
+ALLOWED_HOSTS = [host.strip()
+                 for host in ALLOWED_HOSTS_STR.split(',') if host.strip()]
 
 
 # Application definition
@@ -50,7 +50,7 @@ if DEBUG:
         # タグをつける機能 django-taggit
         'taggit',
     ]
-else:    
+else:
     INSTALLED_APPS = [
         'django.contrib.admin',
         'django.contrib.auth',
@@ -65,7 +65,7 @@ else:
         'taggit',
         'storages',
     ]
-    
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -138,26 +138,23 @@ else:
     # AWS設定
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-    AWS_STORAGE_BUCKET_NAME = 'zerocrew-bucket-20250622' # ステップ1で作成したバケット名
-    AWS_S3_REGION_NAME = 'ap-northeast-1' # 東京リージョン
+    AWS_STORAGE_BUCKET_NAME = 'zerocrew-bucket-20250622'  # ステップ1で作成したバケット名
+    AWS_S3_REGION_NAME = 'ap-northeast-1'  # 東京リージョン
     AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
     # S3においてのエラーより、ACLを設定しない
     AWS_DEFAULT_ACL = None
     AWS_S3_OBJECT_PARAMETERS = {
-        'CacheControl': 'max-age=86400', # キャッシュの有効期限（秒）
+        'CacheControl': 'max-age=86400',  # キャッシュの有効期限（秒）
     }
-    
-    # 静的ファイル(CSS, JS) の設定
-    STATIC_LOCATION = 'static'
-    STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{STATIC_LOCATION}/'
-    STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
+    # 静的ファイル(CSS, JS) の設定
+    STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
+    STATICFILES_STORAGE = 'zerocrew.storages_conf.StaticStorage'  # ← ここを書き換える
 
     # メディアファイル(ユーザーがアップロードする画像) の設定
-    MEDIA_LOCATION = 'media'
-    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{MEDIA_LOCATION}/'
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    
+    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+    DEFAULT_FILE_STORAGE = 'zerocrew.storages_conf.MediaStorage'  # ← ここを書き換える
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
