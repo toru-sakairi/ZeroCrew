@@ -163,6 +163,11 @@ else:
     # メディアファイル(ユーザーがアップロードする画像) の設定
     MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
     DEFAULT_FILE_STORAGE = 'zerocrew.storages_conf.MediaStorage'  # ← ここを書き換える
+    
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_TRUSTED_ORIGINS = ['https://zerocrew.net']
+
 
 
 # Password validation
