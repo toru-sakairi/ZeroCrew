@@ -345,7 +345,7 @@ class ToggleLikeView(LoginRequiredMixin, View):
         if not created:
             like.delete()
             
-        return HttpResponseRedirect(reverse('projects:project_detail', kwargs={'pk':project.pk}))s
+        return HttpResponseRedirect(reverse('projects:project_detail', kwargs={'pk':project.pk}))
     
 # ▼▼▼ ヘルスチェック用のビューを追加 ▼▼▼
 def health_check(request):
