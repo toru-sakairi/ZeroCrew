@@ -3,13 +3,13 @@
 # ここでは、projectsアプリケーション内でのレスポンスを生成する。
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
-from django.views.generic import CreateView, ListView, DetailView, UpdateView
+from django.views.generic import CreateView, ListView, DetailView, UpdateView, DeleteView
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy, reverse
 from .models import Project, Application, Message, Like
 from .forms import ProjectForm
-from django.http import HttpResponseForbidden, HttpResponseRedirect
+from django.http import HttpResponseForbidden, HttpResponseRedirect, HttpResponse
 from django.db.models import Q , Count
 # --- 複数キーワード検索のために追加 ---
 import shlex
@@ -82,6 +82,11 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
         
         # いいねに関する情報
         project = self.get_object()
+        
+        
+        # オーナー情報の属性を作っておく（2025_06_28:メンバーリスト表示のため） userのエラーはおそらくVS側のエラーで正しく使われそう
+        owner = project.user
+        
         context['like_count'] = project.like_set.count()
         if self.request.user.is_authenticated:
             context['is_liked'] = project.like_set.filter(user=self.request.user).exists()
@@ -98,6 +103,44 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
         # テンプレートに渡すコンテキストに追加
         context['is_member'] = is_member
         context['is_applied'] = is_applied
+        
+        # プロジェクトメンバーの情報
+        approved_applications = Application.objects.filter(
+            project=project,
+            status = Application.STATUS_APPROVED
+        )
+        
+        contributors = [app.applicant for app in approved_applications]
+        
+        # 最初はmembersかなと思ったけど、ownerが単体で存在するから、ownerとcontributorsをコンテキストに入れる
+        # members = [owner] + contributors
+        
+        context['owner'] = owner
+        context['contributors'] = contributors
+        
+        return context
+    
+class ProjectDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Project
+    template_name = 'projects/project_confirm_delete.html'
+    
+    def test_func(self):
+        project = self.get_object()
+        return self.request.user == project.user
+    
+    # 削除成功後のリダイレクト先を動的に生成する
+    def get_success_url(self):
+        # 削除後は、自分のプロフィールページに戻る
+        return reverse_lazy('users:profile', kwargs={'pk': self.request.user.pk})
+    
+    def form_valid(self, form):
+        messages.success(self.request, f"プロジェクト「{self.object.title}」を削除しました。")
+        return super().form_valid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # これでテンプレート側で確実に request.user が使えるようになります
+        context['user'] = self.request.user
         return context
 
 # プロジェクト応募ビュー
@@ -302,13 +345,20 @@ class ToggleLikeView(LoginRequiredMixin, View):
         if not created:
             like.delete()
             
-        return HttpResponseRedirect(reverse('projects:project_detail', kwargs={'pk':project.pk}))
+        return HttpResponseRedirect(reverse('projects:project_detail', kwargs={'pk':project.pk}))s
+    
+# ▼▼▼ ヘルスチェック用のビューを追加 ▼▼▼
+def health_check(request):
+    """ALBからのヘルスチェックに応答するためのビュー"""
+    return HttpResponse("OK", status=200)
+
     
 # .as_view()を使って、各クラスベースビューを関数ベースビューのようにURLconfで使えるようにする
 home = HomeView.as_view()
 project_create = ProjectCreateView.as_view()
 project_detail = ProjectDetailView.as_view()
 project_edit = ProjectEditView.as_view() # ▼▼▼ これを追加 ▼▼▼
+project_delete = ProjectDeleteView.as_view()
 apply_for_project = ApplyForProjectView.as_view()
 applicant_list = ApplicantListView.as_view()
 update_application_status = UpdateApplicationStatusView.as_view()

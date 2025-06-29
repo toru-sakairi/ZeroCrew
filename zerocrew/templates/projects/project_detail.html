@@ -88,3 +88,40 @@
     </div>
 </div>
 {% endblock %}
+
+{% block sidebar %}
+{# 1. オーナー（発案者）を特別に表示するカード #}
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0" style="font-size: 1rem;"><i class="bi bi-lightbulb-fill me-2"></i>発案者 (オーナー)</h5>
+    </div>
+    <div class="card-body">
+        {# オーナーの情報をユーザーカードで表示 #}
+        {# 'owner' はviews.pyから渡すことを想定 #}
+        {% include 'users/_user_card.html' with user=owner %}
+    </div>
+</div>
+
+{# 2. オーナー以外の協力メンバーを表示するカード #}
+<div class="card shadow-sm">
+    <div class="card-header bg-light">
+        <h5 class="mb-0" style="font-size: 1rem;">
+            <i class="bi bi-people-fill me-2"></i>協力メンバー ({{ contributors|length }}人)
+        </h5>
+    </div>
+    {% if contributors %}
+        <div class="list-group list-group-flush">
+            {% for member in contributors %}
+                <div class="list-group-item list-group-item-action">
+                    {# 各メンバーの情報をユーザーカードで表示 #}
+                    {% include 'users/_user_card.html' with user=member %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card-body">
+            <p class="text-muted mb-0 small">まだ協力メンバーがいません。</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

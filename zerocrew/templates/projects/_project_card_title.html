@@ -55,7 +55,8 @@
             {# もし、ログインしているユーザーがプロジェクトの投稿者本人なら編集ボタンを表示 #}
             {% if request.user == project.user %}
                 <a href="{% url 'projects:project_edit' project.pk %}" class="btn btn-sm btn-outline-secondary">編集</a>
-            {% endif %}
+                <a href="{% url 'projects:project_delete' project.pk %}" class="btn btn-sm btn-outline-danger position-relative">削除</a>
+                {% endif %}
             {# ▲▲▲ ここまで ▲▲▲ #}
 
             <a href="{% url 'projects:project_detail' project.pk %}" class="btn btn-sm btn-outline-primary">詳細を見る</a>

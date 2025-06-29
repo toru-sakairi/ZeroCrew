@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}プロジェクトの削除確認{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h3 class="mb-0">プロジェクトの削除確認</h3>
+                </div>
+                <div class="card-body">
+                    <p><strong>「{{ object.title }}」</strong>を本当に削除しますか？</p>
+                    <p class="text-danger">この操作は元に戻すことができません。</p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">はい、削除します</button>
+                        <a href="{% url 'users:profile' request.user.pk %}" class="btn btn-secondary">いいえ、キャンセルします</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
