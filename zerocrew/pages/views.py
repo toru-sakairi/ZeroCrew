@@ -13,4 +13,10 @@ class PrivacyPolicyView(TemplateView):
     """
     # 今後作成するプライバシーポリシーのテンプレートを指定
     template_name = "pages/privacy_policy.html"
+    
+class Landing_AboutView(TemplateView):
+    """
+    ランディングページ＆Aboutのページを表示するためのビュー
+    """
+    template_name = "pages/landing_about.html"
 

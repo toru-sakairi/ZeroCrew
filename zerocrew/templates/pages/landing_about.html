@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ZeroCrew - 大学生のためのアイデア創造マッチングプラットフォーム{% endblock %}
+
+{% block extra_head %}
+{# このページ専用のカスタムスタイル #}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap"
+    rel="stylesheet">
+<style>
+    /* ページ全体のフォントを設定 */
+    body {
+        font-family: 'Inter', 'Noto+Sans+JP', sans-serif;
+    }
+
+    /* Bootstrapのデフォルトのプライマリーカラーを上書き（任意） */
+    :root {
+        --bs-primary: #4F46E5;
+        --bs-primary-rgb: 79, 70, 229;
+    }
+
+    /* グラデーションの定義 */
+    .hero-gradient {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+
+    .cta-gradient {
+        background: linear-gradient(90deg, #4F46E5 0%, #818CF8 100%);
+    }
+
+    .btn-cta-gradient {
+        background: linear-gradient(90deg, #4F46E5 0%, #818CF8 100%);
+        border: none;
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
+    .btn-cta-gradient:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    /* カードのホバーエフェクト */
+    .card-hover {
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+
+    .card-hover:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 1rem 1.5rem rgba(0, 0, 0, 0.1) !important;
+    }
+
+    /* 「使い方」セクションの点線 */
+    @media (min-width: 768px) {
+        .how-it-works-line {
+            position: absolute;
+            top: 40px;
+            /* アイコンの中心あたり */
+            left: 10%;
+            width: 80%;
+            height: 2px;
+            background-image: linear-gradient(to right, #dee2e6 50%, transparent 50%);
+            background-size: 20px 2px;
+            background-repeat: repeat-x;
+            z-index: 0;
+        }
+    }
+
+    .step-icon {
+        width: 80px;
+        height: 80px;
+        z-index: 1;
+        position: relative;
+    }
+</style>
+{% endblock %}
+
+
+{% block page_layout %}
+{# base.htmlのcol-lg-8のコンテナを上書きして全幅にするため、rowとcol-12でラップします #}
+<div class="row">
+    <div class="col-12">
+
+        <!-- Main Content -->
+        <main>
+            <!-- Hero Section -->
+            <section class="hero-gradient text-center py-5">
+                <div class="container py-5">
+                    <p class="badge bg-primary-subtle text-primary-emphasis fs-6 px-3 py-2 rounded-pill mb-4">
+                        大学生限定のアイデア創造コミュニティ</p>
+                    <h1 class="display-3 fw-bolder text-dark my-4">
+                        そのアイデア、仲間とカタチに。
+                    </h1>
+                    <p class="fs-5 text-secondary lead mb-5 mx-auto" style="max-width: 700px;">
+                        ZeroCrewは、アイデアを持つ人と、それを実現するスキルを持つ大学生をつなぐプラットフォーム。
+                        リスクゼロで、あなたの創造力を加速させよう。
+                    </p>
+                    <a href="{% url 'projects:home' %}"
+                        class="btn btn-cta-gradient text-white fs-5 fw-bold py-3 px-5 rounded-pill">
+                        今すぐプロジェクトを探す →
+                    </a>
+                    <p class="mt-4 text-muted">登録無料・ポートフォリオにもなる</p>
+                </div>
+            </section>
+
+            <!-- About Section -->
+            <section id="about" class="py-5 bg-white">
+                <div class="container py-5">
+                    <div class="text-center mb-5">
+                        <h2 class="display-5 fw-bold text-dark mb-4">ZeroCrewとは？</h2>
+                        <p class="fs-5 text-secondary lead mx-auto" style="max-width: 800px;">
+                            起業に興味はあるけど、何から始めればいいかわからない。そんな学生のための「プレ・スタートアップ・サンドボックス」です。
+                        </p>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-md-4 text-center">
+                            <div class="d-inline-flex align-items-center justify-content-center bg-primary-subtle rounded-circle mb-4"
+                                style="width: 64px; height: 64px;">
+                                <i class="bi bi-shield-check fs-2 text-primary"></i>
+                            </div>
+                            <h3 class="fs-4 fw-bold mb-2">安全な実験場</h3>
+                            <p class="text-secondary">資金調達や法人化のプレッシャーなし。サークルのように気軽に、純粋な情熱でプロジェクトを始められます。</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="d-inline-flex align-items-center justify-content-center bg-primary-subtle rounded-circle mb-4"
+                                style="width: 64px; height: 64px;">
+                                <i class="bi bi-people-fill fs-2 text-primary"></i>
+                            </div>
+                            <h3 class="fs-4 fw-bold mb-2">多様な仲間との出会い</h3>
+                            <p class="text-secondary">エンジニア、デザイナー、マーケター。学部の垣根を越え、あなたのアイデアを実現する最高のチームが見つかります。</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="d-inline-flex align-items-center justify-content-center bg-primary-subtle rounded-circle mb-4"
+                                style="width: 64px; height: 64px;">
+                                <i class="bi bi-file-earmark-person-fill fs-2 text-primary"></i>
+                            </div>
+                            <h3 class="fs-4 fw-bold mb-2">価値あるポートフォリオ</h3>
+                            <p class="text-secondary">プロジェクトでの経験は、あなたのスキルと情熱を証明する最高の資産に。就職活動でも有利になります。</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section id="features" class="py-5 bg-light">
+                <div class="container py-5">
+                    <div class="text-center mb-5">
+                        <h2 class="display-5 fw-bold text-dark mb-4">ZeroCrewの主な機能</h2>
+                        <p class="fs-5 text-secondary lead">アイデアからチーム結成、プロジェクト遂行までをシームレスに支援します。</p>
+                    </div>
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                        <!-- Feature Card 1 -->
+                        <div class="col">
+                            <div class="card h-100 p-4 rounded-4 shadow-sm card-hover">
+                                <h3 class="fs-5 fw-bold mb-3">アイデア投稿＆検索</h3>
+                                <p class="text-secondary">温めているアイデアをプロジェクトとして投稿。興味のある分野のプロジェクトを簡単に見つけられます。</p>
+                            </div>
+                        </div>
+                        <!-- Feature Card 2 -->
+                        <div class="col">
+                            <div class="card h-100 p-4 rounded-4 shadow-sm card-hover">
+                                <h3 class="fs-5 fw-bold mb-3">スマートなマッチング</h3>
+                                <p class="text-secondary">必要なスキルや興味分野でメンバーを検索。最適なチームメイトと繋がることができます。</p>
+                            </div>
+                        </div>
+                        <!-- Feature Card 3 -->
+                        <div class="col">
+                            <div class="card h-100 p-4 rounded-4 shadow-sm card-hover">
+                                <h3 class="fs-5 fw-bold mb-3">チーム内コミュニケーション</h3>
+                                <p class="text-secondary">プロジェクト専用のグループチャットで、円滑なコミュニケーションと情報共有を実現します。</p>
+                            </div>
+                        </div>
+                        <!-- Feature Card 4 -->
+                        <div class="col">
+                            <div class="card h-100 p-4 rounded-4 shadow-sm card-hover">
+                                <h3 class="fs-5 fw-bold mb-3">進捗管理ツール</h3>
+                                <p class="text-secondary">タスク管理やマイルストーン設定など、プロジェクトを円滑に進めるための基本ツールを提供。</p>
+                            </div>
+                        </div>
+                        <!-- Feature Card 5 -->
+                        <div class="col">
+                            <div class="card h-100 p-4 rounded-4 shadow-sm card-hover">
+                                <h3 class="fs-5 fw-bold mb-3">安心のIPフレームワーク</h3>
+                                <p class="text-secondary">プロジェクト開始時にライセンスを選択。知的財産に関するトラブルを未然に防ぎ、安心して創作活動に集中できます。</p>
+                            </div>
+                        </div>
+                        <!-- Feature Card 6 -->
+                        <div class="col">
+                            <div class="card h-100 p-4 rounded-4 shadow-sm card-hover">
+                                <h3 class="fs-5 fw-bold mb-3">貢献度の可視化</h3>
+                                <p class="text-secondary">（実装予定）プロジェクトへの貢献をポイント化。あなたの頑張りがプロフィールに記録されます。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- For Students Section -->
+            <section id="for-students" class="py-5 bg-white">
+                <div class="container py-5">
+                    <div class="text-center mb-5">
+                        <h2 class="display-5 fw-bold text-dark mb-4">こんな大学生に</h2>
+                        <p class="fs-5 text-secondary lead">文系・理系・芸術系、すべての学生に活躍の場があります。</p>
+                    </div>
+                    <div class="row g-4">
+                        <!-- For Engineers -->
+                        <div class="col-lg-4">
+                            <div class="card h-100 bg-light border-0 rounded-4 p-4 card-hover"><span
+                                    class="fs-1">💻</span>
+                                <h3 class="fs-4 fw-bold mt-4 mb-3">エンジニア・情報系の学生へ</h3>
+                                <p class="text-secondary mb-4">退屈なクローン開発はもう終わり。面白いアイデアに参加して、世界を驚かせるポートフォリオを創ろう。</p>
+                                <ul class="list-unstyled text-start space-y-2">
+                                    <li class="d-flex align-items-start mb-2"><i
+                                            class="bi bi-check-circle-fill text-primary me-2"></i><span>実践的な開発経験が積める</span>
+                                    </li>
+                                    <li class="d-flex align-items-start mb-2"><i
+                                            class="bi bi-check-circle-fill text-primary me-2"></i><span>チーム開発のスキルが身につく</span>
+                                    </li>
+                                    <li class="d-flex align-items-start"><i
+                                            class="bi bi-check-circle-fill text-primary me-2"></i><span>多様な分野の仲間と出会える</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <!-- For Business/Liberal Arts -->
+                        <div class="col-lg-4">
+                            <div class="card h-100 bg-light border-0 rounded-4 p-4 card-hover"><span
+                                    class="fs-1">📈</span>
+                                <h3 class="fs-4 fw-bold mt-4 mb-3">経済・商学・文系の学生へ</h3>
+                                <p class="text-secondary mb-4">その素晴らしいアイデア、眠らせておくのはもったいない。実現に必要な技術パートナーが、ここで君を待っている。</p>
+                                <ul class="list-unstyled text-start space-y-2">
+                                    <li class="d-flex align-items-start mb-2"><i
+                                            class="bi bi-check-circle-fill text-primary me-2"></i><span>ビジネスアイデアを形にできる</span>
+                                    </li>
+                                    <li class="d-flex align-items-start mb-2"><i
+                                            class="bi bi-check-circle-fill text-primary me-2"></i><span>リーダーシップや企画力を発揮</span>
+                                    </li>
+                                    <li class="d-flex align-items-start"><i
+                                            class="bi bi-check-circle-fill text-primary me-2"></i><span>0→1の経験が積める</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <!-- For Designers/Artists -->
+                        <div class="col-lg-4">
+                            <div class="card h-100 bg-light border-0 rounded-4 p-4 card-hover"><span
+                                    class="fs-1">🎨</span>
+                                <h3 class="fs-4 fw-bold mt-4 mb-3">デザイン・芸術系の学生へ</h3>
+                                <p class="text-secondary mb-4">君のUI/UXスキルが、革新的なプロジェクトを成功に導く。世界を驚かせるポートフォリオを一緒に作ろう。</p>
+                                <ul class="list-unstyled text-start space-y-2">
+                                    <li class="d-flex align-items-start mb-2"><i
+                                            class="bi bi-check-circle-fill text-primary me-2"></i><span>クリエイティブなスキルを活かせる</span>
+                                    </li>
+                                    <li class="d-flex align-items-start mb-2"><i
+                                            class="bi bi-check-circle-fill text-primary me-2"></i><span>実践的なデザイン経験が積める</span>
+                                    </li>
+                                    <li class="d-flex align-items-start"><i
+                                            class="bi bi-check-circle-fill text-primary me-2"></i><span>コンセプトから関われる</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- How it Works Section -->
+            <section id="how-it-works" class="py-5 bg-light">
+                <div class="container py-5">
+                    <div class="text-center mb-5">
+                        <h2 class="display-5 fw-bold text-dark mb-4">かんたん4ステップ</h2>
+                        <p class="fs-5 text-secondary lead">アイデアがカタチになるまでの流れ</p>
+                    </div>
+                    <div class="position-relative">
+                        <div class="how-it-works-line d-none d-md-block"></div>
+                        <div class="row g-4">
+                            <!-- Step 1 -->
+                            <div class="col-md-3 text-center">
+                                <div
+                                    class="d-flex align-items-center justify-content-center step-icon rounded-circle bg-white border border-primary border-3 text-primary mx-auto fw-bold display-6 shadow-sm">
+                                    1</div>
+                                <h3 class="fw-bold fs-5 mt-4 mb-2">アイデアを投稿</h3>
+                                <p class="text-secondary">プロジェクトの目的や必要なスキルを書いて、仲間を募集しよう。</p>
+                            </div>
+                            <!-- Step 2 -->
+                            <div class="col-md-3 text-center">
+                                <div
+                                    class="d-flex align-items-center justify-content-center step-icon rounded-circle bg-white border border-primary border-3 text-primary mx-auto fw-bold display-6 shadow-sm">
+                                    2</div>
+                                <h3 class="fw-bold fs-5 mt-4 mb-2">チームを見つける</h3>
+                                <p class="text-secondary">参加したいプロジェクトに応募したり、スキルを持つ人に声をかけよう。</p>
+                            </div>
+                            <!-- Step 3 -->
+                            <div class="col-md-3 text-center">
+                                <div
+                                    class="d-flex align-items-center justify-content-center step-icon rounded-circle bg-white border border-primary border-3 text-primary mx-auto fw-bold display-6 shadow-sm">
+                                    3</div>
+                                <h3 class="fw-bold fs-5 mt-4 mb-2">プロジェクト始動</h3>
+                                <p class="text-secondary">チームが結成されたら、専用チャットでアイデアを具体化し、創作を始めよう。</p>
+                            </div>
+                            <!-- Step 4 -->
+                            <div class="col-md-3 text-center">
+                                <div
+                                    class="d-flex align-items-center justify-content-center step-icon rounded-circle bg-white border border-primary border-3 text-primary mx-auto fw-bold display-6 shadow-sm">
+                                    4</div>
+                                <h3 class="fw-bold fs-5 mt-4 mb-2">成果を記録する</h3>
+                                <p class="text-secondary">完成したプロジェクトは実績としてプロフィールに。最高のポートフォリオが完成。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTA Section -->
+            <section class="cta-gradient">
+                <div class="container text-center py-5">
+                    <h2 class="display-4 fw-bold text-white mb-4">
+                        さあ、あなたのアイデアを世界へ。
+                    </h2>
+                    <p class="fs-5 text-light opacity-75 lead mx-auto mb-5" style="max-width: 600px;">
+                        必要なのは、一歩踏み出す勇気だけ。ZeroCrewが全力でサポートします。
+                    </p>
+                    <a href="{% url 'users:register' %}"
+                        class="btn bg-white text-primary fs-5 fw-bold py-3 px-5 rounded-pill shadow-lg transform-hover">
+                        無料でアカウント登録
+                    </a>
+                </div>
+            </section>
+        </main>
+
+    </div>
+</div>
+{% endblock page_layout %}
+
+{# このページでは content と sidebar は使わないので、空にしておく（または記述しなくても良い） #}
+{% block content %}{% endblock %}
+{% block sidebar %}{% endblock %}

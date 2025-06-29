@@ -11,6 +11,7 @@ from .models import Project, Application, Message, Like
 from .forms import ProjectForm
 from django.http import HttpResponseForbidden, HttpResponseRedirect, HttpResponse
 from django.db.models import Q , Count
+from taggit.models import Tag 
 # --- 複数キーワード検索のために追加 ---
 import shlex
 from functools import reduce
