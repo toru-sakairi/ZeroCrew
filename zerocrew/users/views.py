@@ -85,13 +85,16 @@ class ProfileView(LoginRequiredMixin, View):
         follower_count = user.followers.count()
         following_count = user.following.count()
         
+        following_users = User.objects.filter(followers__follower=user)
+        
         context = {
             'user': user,
             'profile': profile,
             'user_projects': user_projects,
             'is_following': is_following,
             'follower_count': follower_count,
-            'following_count': following_count
+            'following_count': following_count,
+            'following_users': following_users
         }
 
         # 表示しているプロフィールが、ログイン中のユーザー自身のものかを確認
@@ -227,6 +230,7 @@ class ToggleFollowView(LoginRequiredMixin, View):
             messages.success(request, f"{followed_user.username}さんをフォローしました。")
             
         return HttpResponseRedirect(reverse('users:profile', kwargs={'pk': followed_user.pk}))
+    
     
 login = LoginView.as_view()
 register = RegisterView.as_view()

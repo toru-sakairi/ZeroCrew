@@ -8,10 +8,12 @@
         <div class="card">
             <div class="card-body text-center">
                 {% if profile.icon %}
-                <img src="{{ profile.icon.url }}" class="rounded-circle mb-3" width="150" height="150" alt="icon" style="object-fit: cover;">
+                <img src="{{ profile.icon.url }}" class="rounded-circle mb-3" width="150" height="150" alt="icon"
+                    style="object-fit: cover;">
                 {% else %}
                 <!-- デフォルトアイコン -->
-                <img src="https://placehold.co/150x150/EFEFEF/AAAAAA?text={{ user.username.0|upper }}" class="rounded-circle mb-3" alt="{{ user.username }}">
+                <img src="https://placehold.co/150x150/EFEFEF/AAAAAA?text={{ user.username.0|upper }}"
+                    class="rounded-circle mb-3" alt="{{ user.username }}">
                 {% endif %}
                 <h4 class="card-title">{{ user.username }}</h4>
                 <p class="card-text text-muted">{{ profile.bio|linebreaksbr|default:"自己紹介文はまだありません。" }}</p>
@@ -29,37 +31,37 @@
                         <p class="mb-0 h5">{{ user_projects.count }}</p>
                         <p class="text-muted small">プロジェクト</p>
                     </div>
-                </div>    
+                </div>
 
                 <!-- タグ -->
                 <div class="mt-3 mb-3">
                     {% for tag in profile.tags.all %}
-                        <a href="#" class="badge bg-secondary text-decoration-none fw-normal me-1">{{ tag.name }}</a>
+                    <a href="#" class="badge bg-secondary text-decoration-none fw-normal me-1">{{ tag.name }}</a>
                     {% endfor %}
                 </div>
 
                 <!-- ボタン表示エリア -->
                 <div class="d-grid gap-2">
-                {% if request.user.is_authenticated %}
+                    {% if request.user.is_authenticated %}
                     {% if request.user == user %}
-                        <!-- 自分のプロフィールの場合 -->
-                        <a href="{% url 'users:profile_edit' %}" class="btn btn-secondary">プロフィールを編集</a>
-                        <a href="{% url 'users:application_status' %}" class="btn btn-outline-info">応募状況を確認する</a>
+                    <!-- 自分のプロフィールの場合 -->
+                    <a href="{% url 'users:profile_edit' %}" class="btn btn-secondary">プロフィールを編集</a>
+                    <a href="{% url 'users:application_status' %}" class="btn btn-outline-info">応募状況を確認する</a>
                     {% else %}
-                        <!-- 他のユーザーのプロフィールの場合 -->
-                        <form action="{% url 'users:toggle_follow' user.pk %}" method="post" class="d-grid">
-                            {% csrf_token %}
-                            {% if is_following %}
-                                <button type="submit" class="btn btn-outline-danger">フォロー解除</button>
-                            {% else %}
-                                <button type="submit" class="btn btn-primary">フォローする</button>
-                            {% endif %}
-                        </form>
-                        <a href="{% url 'users:start_conversation' user_id=user.pk %}" class="btn btn-primary">
-                            <i class="bi bi-chat-dots-fill me-1"></i>メッセージを送る
-                        </a>
+                    <!-- 他のユーザーのプロフィールの場合 -->
+                    <form action="{% url 'users:toggle_follow' user.pk %}" method="post" class="d-grid">
+                        {% csrf_token %}
+                        {% if is_following %}
+                        <button type="submit" class="btn btn-outline-danger">フォロー解除</button>
+                        {% else %}
+                        <button type="submit" class="btn btn-primary">フォローする</button>
+                        {% endif %}
+                    </form>
+                    <a href="{% url 'users:start_conversation' user_id=user.pk %}" class="btn btn-primary">
+                        <i class="bi bi-chat-dots-fill me-1"></i>メッセージを送る
+                    </a>
                     {% endif %}
-                {% endif %}
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -73,25 +75,28 @@
             </div>
             <div class="list-group list-group-flush">
                 {% for conversation in user_conversations %}
-                    <a href="{% url 'users:conversation_detail' pk=conversation.pk %}" class="list-group-item list-group-item-action d-flex align-items-center">
-                        {% for participant in conversation.participants.all %}
-                            {% if participant != request.user %}
-                                <!-- 会話相手のアイコン -->
-                                {% if participant.profile.icon %}
-                                    <img src="{{ participant.profile.icon.url }}" class="rounded-circle me-3" width="40" height="40" alt="icon" style="object-fit: cover;">
-                                {% else %}
-                                    <img src="https://placehold.co/100x100/EFEFEF/AAAAAA?text={{ participant.username.0|upper }}" class="rounded-circle me-3" width="40" height="40" alt="icon">
-                                {% endif %}
-                                <!-- 会話相手のユーザー名と最新メッセージ（将来の拡張用）-->
-                                <div class="w-100">
-                                    <div class="fw-bold">{{ participant.username }}</div>
-                                    <div class="text-muted small">
-                                        {{ conversation.messages.last.content|truncatechars:20 }}
-                                    </div>
-                                </div>
-                            {% endif %}
-                        {% endfor %}
-                    </a>
+                <a href="{% url 'users:conversation_detail' pk=conversation.pk %}"
+                    class="list-group-item list-group-item-action d-flex align-items-center">
+                    {% for participant in conversation.participants.all %}
+                    {% if participant != request.user %}
+                    <!-- 会話相手のアイコン -->
+                    {% if participant.profile.icon %}
+                    <img src="{{ participant.profile.icon.url }}" class="rounded-circle me-3" width="40" height="40"
+                        alt="icon" style="object-fit: cover;">
+                    {% else %}
+                    <img src="https://placehold.co/100x100/EFEFEF/AAAAAA?text={{ participant.username.0|upper }}"
+                        class="rounded-circle me-3" width="40" height="40" alt="icon">
+                    {% endif %}
+                    <!-- 会話相手のユーザー名と最新メッセージ（将来の拡張用）-->
+                    <div class="w-100">
+                        <div class="fw-bold">{{ participant.username }}</div>
+                        <div class="text-muted small">
+                            {{ conversation.messages.last.content|truncatechars:20 }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </a>
                 {% endfor %}
             </div>
         </div>
@@ -117,3 +122,23 @@
     </div>
 </div>
 {% endblock %}
+
+{% block sidebar %}
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-people-fill me-1"></i>
+        フォロー中
+    </div>
+    <div class="list-group list-group-flush">
+        {% for f_user in following_users %}
+        <div class="list-group-item list-group-item-action p-2">
+            {% include 'users/_user_card.html' with user=f_user %}
+        </div>
+        {% empty %}
+        <div class="p-3 text-muted small">
+            現在フォローしているユーザーはいません。
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock sidebar %}
