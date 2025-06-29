@@ -5,12 +5,9 @@
 {% block content %}
 <div class="container my-4">
     <div class="card shadow-sm">
-        {# ▼▼▼ ヘッダーのレイアウトを修正 ▼▼▼ #}
         <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
-            {# タイトル。長い場合は折り返すように調整 #}
             <h1 class="h3 mb-0 me-3">{{ project.title }}</h1>
             
-            {# ボタンをグループ化し、横並びにする #}
             <div class="d-flex flex-shrink-0">
                 {% if request.user == project.user %}
                     <a href="{% url 'projects:project_edit' project.pk %}" class="btn btn-sm btn-outline-secondary me-2">編集</a>
@@ -21,7 +18,7 @@
                         <a href="{% url 'projects:project_chat' project.pk %}" class="btn btn-success">グループチャットに参加</a>
                     {% elif is_applied %}
                         <a href="#" class="btn btn-info disabled">承認待ち</a>
-                    {% else %}
+                    {% elif project.status == project.STATUS_RECRUITING and remaining_slots > 0 %}
                         <form action="{% url 'projects:apply_for_project' project.pk %}" method="post" class="d-inline">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-primary">このプロジェクトに応募する</button>
@@ -31,7 +28,6 @@
             </div>
         </div>
         <div class="card-body p-4">
-            {# ▼▼▼ ここから2列レイアウト ▼▼▼ #}
             <div class="row g-4 g-lg-5">
                 <!-- 左カラム：画像 & いいね -->
                 <div class="col-lg-5">
@@ -62,6 +58,31 @@
                         <strong>最終更新:</strong> {{ project.updated_at|date:"Y年m月d日" }}
                     </p>
 
+                    <div class="card bg-light border-2 mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title d-flex justify-content-between align-items-center">
+                                <span>プロジェクト状況</span>
+                                <span class="badge fs-6 rounded-pill {% if project.status == project.STATUS_RECRUITING %}bg-primary{% elif project.status == project.STATUS_IN_PROGRESS %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {{ project.get_status_display }}
+                                </span>
+                            </h5>
+
+                            {% if project.status == project.STATUS_RECRUITING %}
+                                <div class="progress mt-3" style="height: 20px;">
+                                    <div class="progress-bar" role="progressbar" style="width: {{ progress_percentage }}%;" aria-valuenow="{{ approved_count }}" aria-valuemin="0" aria-valuemax="{{ project.max_members }}"></div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-1 text-muted small">
+                                    <span>募集枠: {{ project.max_members }}人</span>
+                                    <span>残り: {{ remaining_slots }}人</span>
+                                </div>
+                            {% elif project.status == project.STATUS_IN_PROGRESS %}
+                                <p class="mb-0 mt-2 text-muted small">メンバーと共にプロジェクトが進行中です！</p>
+                            {% else %}
+                                <p class="mb-0 mt-2 text-muted small">このプロジェクトは目標を達成し、完了しました。</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
                     <h5 class="card-title fw-bold">プロジェクト概要</h5>
                     <p class="card-text mb-4" style="white-space: pre-wrap;">{{ project.outline }}</p>
 
@@ -70,6 +91,20 @@
 
                     <h5 class="card-title fw-bold">目標・ゴール</h5>
                     <p class="card-text mb-4" style="white-space: pre-wrap;">{{ project.goal }}</p>
+                    
+                    {% if request.user == project.user and project.status == project.STATUS_IN_PROGRESS %}
+                    <div class="card my-4 border-success">
+                        <div class="card-header bg-success-subtle text-success-emphasis">オーナー用メニュー</div>
+                        <div class="card-body text-center">
+                            <p class="card-text small">プロジェクトが目標を達成した場合、ステータスを変更してください。</p>
+                            <form action="{% url 'projects:update_project_status' project.pk %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="{{ project.STATUS_COMPLETED }}">
+                                <button type="submit" class="btn btn-success">プロジェクトを「実現済」にする</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
                     
                     {% if project.tags.all %}
                     <div class="mt-4">
@@ -90,30 +125,25 @@
 {% endblock %}
 
 {% block sidebar %}
-{# 1. オーナー（発案者）を特別に表示するカード #}
 <div class="card shadow-sm mb-4">
     <div class="card-header bg-primary text-white">
         <h5 class="mb-0" style="font-size: 1rem;"><i class="bi bi-lightbulb-fill me-2"></i>発案者 (オーナー)</h5>
     </div>
     <div class="card-body">
-        {# オーナーの情報をユーザーカードで表示 #}
-        {# 'owner' はviews.pyから渡すことを想定 #}
         {% include 'users/_user_card.html' with user=owner %}
     </div>
 </div>
 
-{# 2. オーナー以外の協力メンバーを表示するカード #}
 <div class="card shadow-sm">
     <div class="card-header bg-light">
         <h5 class="mb-0" style="font-size: 1rem;">
-            <i class="bi bi-people-fill me-2"></i>協力メンバー ({{ contributors|length }}人)
+            <i class="bi bi-people-fill me-2"></i>協力メンバー ({{ contributors|length }}/{{ project.max_members }}人)
         </h5>
     </div>
     {% if contributors %}
         <div class="list-group list-group-flush">
             {% for member in contributors %}
                 <div class="list-group-item list-group-item-action">
-                    {# 各メンバーの情報をユーザーカードで表示 #}
                     {% include 'users/_user_card.html' with user=member %}
                 </div>
             {% endfor %}

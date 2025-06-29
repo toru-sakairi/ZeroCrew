@@ -4,13 +4,12 @@
 {% block title %}新規プロジェクト作成 - ZeroCrew{% endblock %}
 
 {% block extra_head %}
-<!-- ▼▼▼ このページだけで使うTagifyのCSSとJavaScriptを読み込みます ▼▼▼ -->
+<!-- TagifyのCSSとJS -->
 <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
 <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.polyfills.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet" type="text/css" />
-<!-- ▲▲▲ ここまで ▲▲▲ -->
 <style>
-    /* Tagifyの見た目をBootstrapに合わせるための簡単なスタイル調整（任意） */
+    /* Tagifyのスタイル調整 */
     .tagify{
         --tags-border-color: #dee2e6;
         border-radius: .25rem;
@@ -25,7 +24,6 @@
 </style>
 {% endblock %}
 
-
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
@@ -34,63 +32,33 @@
                 <h2 class="h4 mb-0">新規プロジェクトを作成する</h2>
             </div>
             <div class="card-body">
-                <form method="post" novalidate>
+                <form method="post" enctype="multipart/form-data" novalidate>
                     {% csrf_token %}
 
-                    <!-- タイトル -->
-                    <div class="mb-3">
-                        <label for="{{ form.title.id_for_label }}" class="form-label">{{ form.title.label }}</label>
-                        {{ form.title }}
-                        {% for error in form.title.errors %}
-                            <div class="alert alert-danger mt-1 p-2">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    <!-- 2. プロジェクト画像 (新規追加) -->
-                    <div class="mb-3">
-                        <label for="{{ form.image.id_for_label }}" class="form-label">{{ form.image.label }}</label>
-                        {{ form.image }}
-                        {% if form.image.help_text %}<div class="form-text">{{ form.image.help_text }}</div>{% endif %}
-                        {% for error in form.image.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
-                    </div>
-                    <!-- 3. プロジェクト概要 -->
-                    <div class="mb-3">
-                        <label for="{{ form.outline.id_for_label }}" class="form-label">{{ form.outline.label }}</label>
-                        {{ form.outline }}
-                         {% for error in form.outline.errors %}
-                            <div class="alert alert-danger mt-1 p-2">{{ error }}</div>
-                        {% endfor %}
-                    </div>
+                    {# ▼▼▼ ここからフォームのループ処理 ▼▼▼ #}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+
+                            {% if field.name == 'tags' %}
+                                {# 'tags'フィールドだけ特別扱い #}
+                                <input name="tags" id="{{ field.id_for_label }}" value="{{ field.value|default:'' }}">
+                            {% else %}
+                                {# それ以外の全てのフィールドは自動で描画 #}
+                                {{ field }}
+                            {% endif %}
+                            
+                            {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                            
+                            {% for error in field.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                    {# ▲▲▲ ここまでループ処理 ▲▲▲ #}
                     
-                    <!-- 4. 背景・課題 (新規追加) -->
-                    <div class="mb-3">
-                        <label for="{{ form.background.id_for_label }}" class="form-label">{{ form.background.label }}</label>
-                        {{ form.background }}
-                        {% if form.background.help_text %}<div class="form-text">{{ form.background.help_text }}</div>{% endif %}
-                        {% for error in form.background.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
-                    </div>
-
-                    <!-- 5. 目標・ゴール (新規追加) -->
-                    <div class="mb-3">
-                        <label for="{{ form.goal.id_for_label }}" class="form-label">{{ form.goal.label }}</label>
-                        {{ form.goal }}
-                        {% if form.goal.help_text %}<div class="form-text">{{ form.goal.help_text }}</div>{% endif %}
-                        {% for error in form.goal.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
-                    </div>                    
-
-                    <!-- ▼▼▼▼▼ タグ入力欄をループから分離し、特別に記述します ▼▼▼▼▼ -->
-                    <div class="mb-3">
-                        <label for="{{ form.tags.id_for_label }}" class="form-label">{{ form.tags.label }}</label>
-                        <!-- 元のinput要素をTagifyが置き換えます。valueに既存のタグをセットします。 -->
-                        <input name="tags" id="{{ form.tags.id_for_label }}" value="{{ form.tags.value|default:'' }}">
-                        {% if form.tags.help_text %}
-                            <div class="form-text">{{ form.tags.help_text }}</div>
-                        {% endif %}
-                        {% for error in form.tags.errors %}
-                            <div class="alert alert-danger mt-1 p-2">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    <!-- ▲▲▲▲▲ ここまで ▲▲▲▲▲ -->
-
                     <button type="submit" class="btn btn-primary w-100">投稿する</button>
                 </form>
             </div>
@@ -100,21 +68,14 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Bootstrapのクラスを自動で追加するスクリプト
-    // Tagifyが管理するtags以外の要素にだけ適用します。
-    document.querySelectorAll('form textarea, form select, form input[type="text"]').forEach(function(input) {
-        if(input.name !== 'tags'){ // tagsフィールドは除外
-            input.classList.add('form-control');
-        }
+    // Tagifyを初期化
+    var input = document.querySelector('input[name=tags]');
+    new Tagify(input, {
+        maxTags: 5 // タグの上限を5個に設定
     });
 
-    // ▼▼▼▼▼ ここからTagifyを初期化します ▼▼▼▼▼
-    // タグ入力用のinput要素を取得
-    var input = document.querySelector('input[name=tags]');
-
-    // Tagifyを初期化
-    new Tagify(input);
-    // ▲▲▲▲▲ ここまで ▲▲▲▲▲
+    // 以前のJavaScriptは不要になります。
+    // forms.pyのwidgetsでBootstrapのクラスを設定しているためです。
 });
 </script>
 {% endblock %}

@@ -2,11 +2,23 @@
 from django.db import models
 from django.conf import settings
 from taggit.managers import TaggableManager
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 # オリジネーターが投稿するプロジェクトを定義するモデル
 
 
 class Project(models.Model):
+    # --- ステータス管理のための定数 ---
+    STATUS_RECRUITING = 'recruiting'  # 募集中
+    STATUS_IN_PROGRESS = 'in_progress' # 実行中
+    STATUS_COMPLETED = 'completed'    # 実現済
+    
+    STATUS_CHOICES = [
+        (STATUS_RECRUITING, '募集中'),
+        (STATUS_IN_PROGRESS, '実行中'),
+        (STATUS_COMPLETED, '実現済'),
+    ]
+    
     # user:プロジェクトを投稿したユーザー。外部キー。
     # このプロジェクトを投稿したユーザーと紐づける。Userモデルが削除された場合、関連するプロジェクトも一緒に削除される（on_delete=models.CASCADE）
     # related_name='projects'とすることで、User側から user.projectsのようにして、一覧を取得できるようになる。
@@ -48,6 +60,21 @@ class Project(models.Model):
         verbose_name='目標・ゴール',
         help_text='このプロジェクトで達成したい具体的な目標や、理想の状態を記述してください'
     )
+    
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_RECRUITING,
+        verbose_name='プロジェクトステータス'
+    )
+
+    max_members = models.PositiveIntegerField(
+        default=5,
+        verbose_name='募集人数（オーナー除く）',
+        help_text='あなた以外に参加するメンバーの上限人数を1〜5人の範囲で設定してください。',
+        # validatorsを追加して、入力可能な値の範囲を1〜5に制限する
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
 
     # 作成日時：このプロジェクトが作成された日時を自動で記録する。
     created_at = models.DateTimeField(auto_now_add=True)
@@ -57,6 +84,7 @@ class Project(models.Model):
 
     # タグ機能の追加 django-taggitを使って、追加するだけでタグをつけられるようにする
     tags = TaggableManager(blank=True, verbose_name='タグ')
+
 
     # 管理画面などで表示される際の、このオブジェクトの文字列表現。
     def __str__(self):

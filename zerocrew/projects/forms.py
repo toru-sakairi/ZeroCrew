@@ -8,7 +8,7 @@ from .models import Project
 class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
-        fields = ['title', 'image', 'outline', 'background', 'goal', 'tags']
+        fields = ['title', 'image', 'outline', 'background', 'goal', 'tags', 'max_members']
         widgets = {
             'title': forms.TextInput(attrs={
                 'placeholder': 'プロジェクトのタイトルを入力',
@@ -33,7 +33,12 @@ class ProjectForm(forms.ModelForm):
             # imageフィールドにもclassを指定してBootstrapのスタイルを適用
             'image': forms.FileInput(attrs={
                 'class': 'form-control'
-            })
+            }),
+            'max_members': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '1',  # モデルのMinValueValidatorに対応
+                'max': '5',  # モデルのMaxValueValidatorに対応
+            }),
         }
         labels = {
             'title': 'プロジェクト名',
@@ -41,7 +46,8 @@ class ProjectForm(forms.ModelForm):
             'outline': 'プロジェクト概要',
             'background': '背景・課題',
             'goal': '目標・ゴール',
-            'tags': 'タグ (最大5個まで)',
+            'tags': 'タグ （最大５個まで）',
+            'max_members': '募集人数 (自分を除く)',
         }
     # タグ用のスクリプト
 

@@ -4,12 +4,12 @@
 {% block title %}プロジェクト編集 - {{ project.title }}{% endblock %}
 
 {% block extra_head %}
-<!-- TagifyのCSSとJS (新規作成ページと同じものを流用) -->
+<!-- TagifyのCSSとJS (新規作成ページと同じ) -->
 <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
 <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.polyfills.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet" type="text/css" />
 <style>
-    /* Tagifyのスタイル調整 (新規作成ページと同じものを流用) */
+    /* Tagifyのスタイル調整 (新規作成ページと同じ) */
     .tagify{
         --tags-border-color: #dee2e6;
         border-radius: .25rem;
@@ -30,55 +30,40 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                {# ▼▼▼ タイトルを「編集」に変更 ▼▼▼ #}
                 <h2 class="h4 mb-0">プロジェクトを編集する</h2>
             </div>
             <div class="card-body">
                 <form method="post" enctype="multipart/form-data" novalidate>
                     {% csrf_token %}
 
-                    <!-- タイトル -->
-                    <div class="mb-3">
-                        <label for="{{ form.title.id_for_label }}" class="form-label">{{ form.title.label }}</label>
-                        {{ form.title }}
-                        {% for error in form.title.errors %}<div class="alert alert-danger mt-1 p-2">{{ error }}</div>{% endfor %}
-                    </div>
-                    <!-- プロジェクト画像 -->
-                    <div class="mb-3">
-                        <label for="{{ form.image.id_for_label }}" class="form-label">{{ form.image.label }}</label>
-                        <p class="text-muted small">現在の画像: {% if project.image %}<a href="{{ project.image.url }}" target="_blank">{{ project.image.name }}</a>{% else %}なし{% endif %}</p>
-                        {{ form.image }}
-                        {% if form.image.help_text %}<div class="form-text">{{ form.image.help_text }}</div>{% endif %}
-                        {% for error in form.image.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
-                    </div>
-                    <!-- プロジェクト概要 -->
-                    <div class="mb-3">
-                        <label for="{{ form.outline.id_for_label }}" class="form-label">{{ form.outline.label }}</label>
-                        {{ form.outline }}
-                        {% for error in form.outline.errors %}<div class="alert alert-danger mt-1 p-2">{{ error }}</div>{% endfor %}
-                    </div>
-                    <!-- 背景・課題 -->
-                    <div class="mb-3">
-                        <label for="{{ form.background.id_for_label }}" class="form-label">{{ form.background.label }}</label>
-                        {{ form.background }}
-                        {% for error in form.background.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
-                    </div>
-                    <!-- 目標・ゴール -->
-                    <div class="mb-3">
-                        <label for="{{ form.goal.id_for_label }}" class="form-label">{{ form.goal.label }}</label>
-                        {{ form.goal }}
-                        {% for error in form.goal.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
-                    </div>
-                    <!-- タグ入力欄 -->
-                    <div class="mb-3">
-                        <label for="{{ form.tags.id_for_label }}" class="form-label">{{ form.tags.label }}</label>
-                        {# ▼▼▼ valueに既存のタグをセットする処理を修正 ▼▼▼ #}
-                        <input name="tags" id="{{ form.tags.id_for_label }}" value="{% for tag in project.tags.all %}{{ tag.name }}{% if not forloop.last %},{% endif %}{% endfor %}">
-                        {% if form.tags.help_text %}<div class="form-text">{{ form.tags.help_text }}</div>{% endif %}
-                        {% for error in form.tags.errors %}<div class="alert alert-danger mt-1 p-2">{{ error }}</div>{% endfor %}
-                    </div>
+                    {# ▼▼▼ ここからフォームのループ処理 ▼▼▼ #}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
 
-                    {# ▼▼▼ ボタンの文言を「更新する」に変更 ▼▼▼ #}
+                            {% if field.name == 'image' %}
+                                {# 'image'フィールドの特別扱い #}
+                                <p class="text-muted small mb-1">現在の画像: {% if project.image %}<a href="{{ project.image.url }}" target="_blank">{{ project.image.name }}</a>{% else %}なし{% endif %}</p>
+                                {{ field }}
+                            {% elif field.name == 'tags' %}
+                                {# 'tags'フィールドの特別扱い #}
+                                <input name="tags" id="{{ field.id_for_label }}" value="{% for tag in project.tags.all %}{{ tag.name }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                            {% else %}
+                                {# それ以外の全てのフィールド #}
+                                {{ field }}
+                            {% endif %}
+                            
+                            {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                            
+                            {% for error in field.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                    {# ▲▲▲ ここまでループ処理 ▲▲▲ #}
+                    
                     <button type="submit" class="btn btn-primary w-100">更新する</button>
                 </form>
             </div>
@@ -88,16 +73,11 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Bootstrapのクラスを自動で追加するスクリプト (流用)
-    document.querySelectorAll('form textarea, form select, form input[type="text"], form input[type="file"]').forEach(function(input) {
-        if(input.name !== 'tags'){
-            input.classList.add('form-control');
-        }
-    });
-
-    // Tagifyを初期化 (流用)
+    // Tagifyを初期化
     var input = document.querySelector('input[name=tags]');
-    new Tagify(input);
+    new Tagify(input, {
+        maxTags: 5 // タグの上限を5個に設定
+    });
 });
 </script>
 {% endblock %}

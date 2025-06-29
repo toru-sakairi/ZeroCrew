@@ -119,6 +119,19 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
         context['owner'] = owner
         context['contributors'] = contributors
         
+        # 応募者数のカウント
+        approved_count = len(contributors)
+        remaining_slots = project.max_members - approved_count
+        
+        context['approved_count'] = approved_count
+        context['remaining_slots'] = remaining_slots if remaining_slots > 0 else 0
+        
+                # プログレスバーのパーセンテージを計算する
+        progress_percentage = 0
+        if project.max_members > 0: # ゼロ除算エラーを防ぐ
+            progress_percentage = (approved_count * 100) / project.max_members
+        context['progress_percentage'] = progress_percentage
+        
         return context
     
 class ProjectDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
