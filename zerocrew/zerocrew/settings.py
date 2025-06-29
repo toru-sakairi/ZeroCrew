@@ -47,6 +47,7 @@ if DEBUG:
         # 作成したアプリをここに追加
         'users.apps.UsersConfig',
         'projects.apps.ProjectsConfig',
+        'pages.apps.PagesConfig',
         # タグをつける機能 django-taggit
         'taggit',
     ]
@@ -61,6 +62,7 @@ else:
         # 作成したアプリをここに追加
         'users.apps.UsersConfig',
         'projects.apps.ProjectsConfig',
+        'pages.apps.PagesConfig',
         # タグをつける機能 django-taggit
         'taggit',
         'storages',
