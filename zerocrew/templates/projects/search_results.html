@@ -41,11 +41,11 @@
     {% if projects %}
     <p class="text-muted mb-4">{{ page_obj.paginator.count }}件のプロジェクトが見つかりました。</p>
 
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    <div class="row row-cols-1 row-cols-md-1 row-cols-lg-2 g-3">
         {% for project in projects %}
         <div class="col">
             {# ▼▼▼ ここで _project_card.html を呼び出す ▼▼▼ #}
-            {% include 'projects/_project_card.html' with project=project %}
+            {% include 'projects/_project_card_title.html' with project=project %}
         </div>
         {% endfor %}
     </div>
