@@ -144,4 +144,8 @@ LOGOUT_REDIRECT_URL = 'users:login'
 if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
+    # Nginxなどのプロキシサーバーからの 'https' ヘッダーを信用する
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'httpss')
+    # 全ての非HTTPSリクエストをHTTPSにリダイレクトする
+    SECURE_SSL_REDIRECT = True
     CSRF_TRUSTED_ORIGINS = [f'https://{os.environ.get("SITE_DOMAIN")}']
