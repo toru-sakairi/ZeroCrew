@@ -3,14 +3,14 @@
 'project' という名前のオブジェクトを渡してください。
 {% endcomment %}
 
-{# カード全体をFlexboxにして、中身を縦に並べる。h-100で高さを揃える #}
-<div class="card h-100 shadow-sm project-card-compact">
+{# ▼▼▼ カードの一番外側のdivに、position-relativeクラスを追加 ▼▼▼ #}
+<div class="card h-100 shadow-sm project-card-compact position-relative">
     {# 詳細ページへのリンク。stretched-linkでカード全体をクリック可能に #}
     <a href="{% url 'projects:project_detail' project.pk %}" class="text-decoration-none text-dark stretched-link"></a>
     
     <div class="card-body d-flex flex-column">
         <!-- 右上のステータスバッジ -->
-        <div class="position-absolute top-0 end-0 p-2">
+        <div class="position-absolute top-0 end-0 p-2" style="z-index: 2;">
             <span class="badge rounded-pill {% if project.status == project.STATUS_RECRUITING %}bg-primary{% elif project.status == project.STATUS_IN_PROGRESS %}bg-success{% else %}bg-secondary{% endif %}">
                 {{ project.get_status_display }}
             </span>
@@ -39,14 +39,13 @@
     </div>
 </div>
 
-<!-- このカード専用のCSSを追記。このファイルがincludeされる場所に適用されます -->
+<!-- このカード専用のCSS。z-indexの指定を削除しました -->
 <style>
 .project-card-compact .project-title-clamp {
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2; /* 表示する行数を2行に制限 */
     overflow: hidden;
-    /* カードの高さが変わらないように、最小の高さを設定 */
     min-height: 2.4em; /* h6のline-height(約1.2) × 2行分 */
 }
 .project-card-compact {
@@ -55,10 +54,5 @@
 .project-card-compact:hover {
     transform: translateY(-5px);
     box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
-}
-/* stretched-linkが他の要素のクリックを妨げないように */
-.project-card-compact .card-body {
-    position: relative;
-    z-index: 1;
 }
 </style>
