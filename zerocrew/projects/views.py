@@ -24,14 +24,30 @@ class HomeView(ListView):
     model = Project
     # 表示するテンプレート（HTML）の指定
     template_name = 'projects/home.html'
-    # テンプレート内で使う変数名の指定。project_listという名前でプロジェクトのリストをテンプレートに渡す。
-    template_object_name = 'project_list'
-    # 表示順の指定。作成日時の新しい順に並べる
-    ordering = ['-created_at']
     
-    def get_queryset(self):
-        # annotateを使って、各プロジェクトにいいね数を付与してからテンプレートに渡す
-        return Project.objects.annotate(like_count=Count('like')).order_by('-created_at')
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # いいね数を予め計算しておくためのベースクエリ
+        base_queryset = Project.objects.annotate(like_count = Count('like'))
+        
+        # 各カテゴリーのプロジェクトを4件ずつ取得する
+        # 新着
+        context['new_projects'] = base_queryset.order_by('-created_at')[:4]
+        # 募集中プロジェクト
+        context['recruiting_projects'] = base_queryset.filter(
+            status=Project.STATUS_RECRUITING
+        ).order_by('-updated_at')[:4]
+        # スタートしたプロジェクト
+        context['in_progress_projects'] = base_queryset.filter(
+            status=Project.STATUS_IN_PROGRESS
+        ).order_by('-updated_at')[:4]
+        # 実現したプロジェクト
+        context['completed_projects'] = base_queryset.filter(
+            status=Project.STATUS_COMPLETED
+        ).order_by('-updated_at')[:4]
+        
+        return context
 
 # プロジェクト作成ビュー。新規プロジェクトを投稿するページ。CreateViewを継承することで、オブジェクトの作成フォームを簡単に実装できる。
 class ProjectCreateView(LoginRequiredMixin, CreateView):

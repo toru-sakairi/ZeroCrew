@@ -2,23 +2,84 @@
 
 {% block title %}ホーム - ZeroCrew{% endblock %}
 
-{# ▼▼▼ メインコンテンツブロック ▼▼▼ #}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="section-title">募集中のプロジェクト</h2>
-</div>
 
-<div class="row row-cols-1 row-cols-md-1 row-cols-lg-2 g-3">
-    {% for project in project_list %}
-    <div class="col">
-        {% include 'projects/_project_card_title.html' with project=project %}
+{# --- 1. 新着プロジェクト --- #}
+{% if new_projects %}
+<div class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="section-title mb-0">新着プロジェクト</h2>
+        {# <a href="#" class="btn btn-sm btn-outline-primary">もっと見る</a> #}
     </div>
-    {% empty %}
-    <div class="alert alert-light" role="alert">
+    <div class="row row-cols-1 row-cols-md-2 g-3">
+        {% for project in new_projects %}
+        <div class="col">
+            {% include 'projects/_project_card_compact.html' with project=project %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{# --- 2. 募集中プロジェクト --- #}
+{% if recruiting_projects %}
+<div class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="section-title mb-0">募集中プロジェクト</h2>
+        {# <a href="#" class="btn btn-sm btn-outline-primary">もっと見る</a> #}
+    </div>
+    <div class="row row-cols-1 row-cols-md-2 g-3">
+        {% for project in recruiting_projects %}
+        <div class="col">
+            {% include 'projects/_project_card_compact.html' with project=project %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{# --- 3. スタートしたプロジェクト --- #}
+{% if in_progress_projects %}
+<div class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="section-title mb-0">スタートしたプロジェクト</h2>
+        {# <a href="#" class="btn btn-sm btn-outline-primary">もっと見る</a> #}
+    </div>
+    <div class="row row-cols-1 row-cols-md-2 g-3">
+        {% for project in in_progress_projects %}
+        <div class="col">
+            {% include 'projects/_project_card_compact.html' with project=project %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{# --- 4. 実現したプロジェクト --- #}
+{% if completed_projects %}
+<div class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="section-title mb-0">実現したプロジェクト</h2>
+        {# <a href="#" class="btn btn-sm btn-outline-primary">もっと見る</a> #}
+    </div>
+    <div class="row row-cols-1 row-cols-md-2 g-3">
+        {% for project in completed_projects %}
+        <div class="col">
+            {% include 'projects/_project_card_compact.html' with project=project %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+
+{# もし全てのリストが空だった場合にメッセージを表示 #}
+{% if not new_projects and not recruiting_projects and not in_progress_projects %}
+    <div class="alert alert-light text-center" role="alert">
         まだ投稿されたプロジェクトはありません。最初のプロジェクトを投稿してみましょう！
     </div>
-    {% endfor %}
-</div>
+{% endif %}
+
 {% endblock %}
 
 {# ▼▼▼ サイドバーブロック ▼▼▼ #}

@@ -1,65 +1,53 @@
 {% comment %}
-汎用的なプロジェクトカードのコンポーネント。
-このテンプレートを include する際は、'project' という名前のオブジェクトを渡してください。
-例: {% include 'projects/_project_card.html' with project=project %}
+横長のリスト表示用の、新しいプロジェクトカードコンポーネント。
 {% endcomment %}
 
-<style>
-.project-title-clamp {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2; /* 表示する行数を2行に制限 */
-    overflow: hidden;
-    text-overflow: ellipsis;
-    /* 1行のタイトルと2行のタイトルでカードの高さが変わらないように、最小の高さを設定 */
-    min-height: 3em; /* h5のline-height(約1.5) × 2行分 */
-}
-</style>
+{# カード全体を詳細ページへのリンクにする #}
+<a href="{% url 'projects:project_detail' project.pk %}" class="list-group-item list-group-item-action p-3">
+    <div class="d-flex w-100">
 
-<div class="card h-100 shadow-sm">
-    <!-- 画像エリア -->
-    <a href="{% url 'projects:project_detail' project.pk %}">
-        {% if project.image %}
-            <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}" style="height: 200px; object-fit: cover;">
-        {% else %}
-            <img src="https://placehold.co/600x400/EFEFEF/AAAAAA?text=No+Image" class="card-img-top" alt="No Image" style="height: 200px; object-fit: cover;">
-        {% endif %}
-    </a>
+        <!-- 左側：テキスト情報 -->
+        <div class="flex-grow-1 me-3">
+            <!-- タイトル -->
+            <h5 class="mb-1 text-primary">{{ project.title }}</h5>
 
-    <!-- カード本体 -->
-    <div class="card-body d-flex flex-column">
-        <h5 class="card-title project-title-clamp">{{ project.title }}</h5>
-        <p class="card-text text-muted small mb-2">
-            By: <a href="{% url 'users:profile' project.user.pk %}" class="text-decoration-none">{{ project.user.username }}</a>
-            <span class="ms-2">| {{ project.created_at|date:"Y/m/d" }}</span>
-        </p>
-        <p class="card-text flex-grow-1">{{ project.outline|truncatechars:80 }}</p>
-        <div class="mt-auto">
-            {% for tag in project.tags.all %}
-                <a href="{% url 'projects:project_list_by_tag' tag.slug %}" class="badge bg-secondary text-decoration-none fw-normal me-1">{{ tag.name }}</a>
+            <!-- 投稿者と日付 -->
+            <p class="mb-2 text-muted small">
+                By: {{ project.user.username }} | {{ project.created_at|date:"Y/m/d" }}
+            </p>
+
+            <!-- 概要 -->
+            <p class="mb-2 d-none d-sm-block">{{ project.outline|truncatechars:60 }}</p>
+
+            <!-- タグ -->
+            <div>
+            {% for tag in project.tags.all|slice:":3" %} {# タグは3つまで表示 #}
+                <span class="badge rounded-pill bg-light text-dark border me-1 fw-normal">{{ tag.name }}</span>
             {% endfor %}
+            </div>
+        </div>
+
+        <!-- 右側：画像とステータス -->
+        <div class="d-flex flex-column align-items-end" style="min-width: 80px;">
+            <!-- プロジェクト画像 -->
+            {% if project.image %}
+                <img src="{{ project.image.url }}" class="rounded mb-2" alt="{{ project.title }}" style="width: 80px; height: 60px; object-fit: cover;">
+            {% else %}
+                <div class="rounded bg-light mb-2 d-flex align-items-center justify-content-center" style="width: 80px; height: 60px;">
+                    <i class="bi bi-card-image text-muted fs-4"></i>
+                </div>
+            {% endif %}
+
+            <!-- いいね数 -->
+            <span class="text-danger small mb-2">
+                <i class="bi bi-heart-fill"></i>
+                {{ project.like_count|default:0 }}
+            </span>
+
+            <!-- プロジェクトステータス -->
+            <span class="badge rounded-pill {% if project.status == project.STATUS_RECRUITING %}bg-primary{% elif project.status == project.STATUS_IN_PROGRESS %}bg-success{% else %}bg-secondary{% endif %}">
+                {{ project.get_status_display }}
+            </span>
         </div>
     </div>
-
-    <!-- フッターエリア：ボタンなどを配置 -->
-    <div class="card-footer bg-white border-top-0 pt-0 d-flex justify-content-between align-items-center">
-        <!-- いいね数 -->
-        <span class="text-danger small">
-            <i class="bi bi-heart-fill"></i>
-            {{ project.like_count|default:0 }}
-        </span>
-
-        <!-- ボタン類 -->
-        <div>
-            {# ▼▼▼ ここが追加した部分 ▼▼▼ #}
-            {# もし、ログインしているユーザーがプロジェクトの投稿者本人なら編集ボタンを表示 #}
-            {% if request.user == project.user %}
-                <a href="{% url 'projects:project_edit' project.pk %}" class="btn btn-sm btn-outline-secondary">編集</a>
-                <a href="{% url 'projects:project_delete' project.pk %}" class="btn btn-sm btn-outline-danger position-relative">削除</a>
-                {% endif %}
-            {# ▲▲▲ ここまで ▲▲▲ #}
-
-            <a href="{% url 'projects:project_detail' project.pk %}" class="btn btn-sm btn-outline-primary">詳細を見る</a>
-        </div>
-    </div>
-</div>
+</a>

@@ -1,0 +1,64 @@
+{% comment %}
+概要を省いた、コンパクトな2列表示用のプロジェクトカード。
+'project' という名前のオブジェクトを渡してください。
+{% endcomment %}
+
+{# カード全体をFlexboxにして、中身を縦に並べる。h-100で高さを揃える #}
+<div class="card h-100 shadow-sm project-card-compact">
+    {# 詳細ページへのリンク。stretched-linkでカード全体をクリック可能に #}
+    <a href="{% url 'projects:project_detail' project.pk %}" class="text-decoration-none text-dark stretched-link"></a>
+    
+    <div class="card-body d-flex flex-column">
+        <!-- 右上のステータスバッジ -->
+        <div class="position-absolute top-0 end-0 p-2">
+            <span class="badge rounded-pill {% if project.status == project.STATUS_RECRUITING %}bg-primary{% elif project.status == project.STATUS_IN_PROGRESS %}bg-success{% else %}bg-secondary{% endif %}">
+                {{ project.get_status_display }}
+            </span>
+        </div>
+
+        <!-- タイトル (2行までに制限) -->
+        <h6 class="card-title fw-bold mb-3 project-title-clamp">{{ project.title }}</h6>
+
+        <!-- タグ (スペースを埋めるためのflex-grow-1) -->
+        <div class="mb-3 flex-grow-1">
+        {% for tag in project.tags.all|slice:":2" %} {# タグは最大2つまで表示 #}
+            <span class="badge rounded-pill bg-light text-dark border me-1 fw-normal">{{ tag.name }}</span>
+        {% endfor %}
+        </div>
+
+        <!-- 最下部の投稿者情報 (mt-autoで常に下に配置) -->
+        <div class="d-flex align-items-center text-muted small mt-auto">
+            {% if project.user.profile.icon %}
+            <img src="{{ project.user.profile.icon.url }}" class="rounded-circle me-2" alt="{{ project.user.username }}" style="width: 24px; height: 24px; object-fit: cover;">
+            {% else %}
+            <img src="https://placehold.co/24x24/EFEFEF/AAAAAA?text={{ project.user.username.0|upper }}" class="rounded-circle me-2" alt="icon">
+            {% endif %}
+            <span>{{ project.user.username }}</span>
+            <span class="ms-auto"><i class="bi bi-heart-fill text-danger me-1"></i>{{ project.like_count|default:0 }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- このカード専用のCSSを追記。このファイルがincludeされる場所に適用されます -->
+<style>
+.project-card-compact .project-title-clamp {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2; /* 表示する行数を2行に制限 */
+    overflow: hidden;
+    /* カードの高さが変わらないように、最小の高さを設定 */
+    min-height: 2.4em; /* h6のline-height(約1.2) × 2行分 */
+}
+.project-card-compact {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.project-card-compact:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+}
+/* stretched-linkが他の要素のクリックを妨げないように */
+.project-card-compact .card-body {
+    position: relative;
+    z-index: 1;
+}
+</style>
