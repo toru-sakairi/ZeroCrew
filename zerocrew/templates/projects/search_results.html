@@ -65,16 +65,7 @@
 <!-- サイドバーに並び替えやタグなどを表示する（広告もかな？） -->
 {# ▼▼▼ サイドバーブロック ▼▼▼ #}
 {% block sidebar %}
-<div class="sidebar-widget">
-    <h5 class="widget-title">人気のタグ</h5>
-    <div class="tags-area">
-        <span class="tag">Web開発</span>
-        <span class="tag">アプリ開発</span>
-        <span class="tag">デザイン</span>
-        <span class="tag">機械学習</span>
-        <span class="tag">ゲーム開発</span>
-    </div>
-</div>
+{% include 'projects/_popular_tags_widget.html' with popular_tags=popular_tags %}
 <div class="sidebar-widget mt-4">
     <h5 class="widget-title">注目のユーザー</h5>
     <p class="text-muted small">（この機能は今後実装します）</p>

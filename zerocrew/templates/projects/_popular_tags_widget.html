@@ -1,0 +1,28 @@
+{% comment %}
+人気のタグ一覧を表示するための、再利用可能なコンポーネントです。
+このテンプレートを include する際は、'popular_tags' という名前のタグリストを渡してください。
+例: {% include 'projects/_popular_tags_widget.html' with popular_tags=popular_tags %}
+
+views.pyの例
+        popular_tags = Tag.objects.annotate(
+            num_times=Count('taggit_taggeditem_items')
+        ).order_by('-num_times')[:10]
+
+        context['popular_tags'] = popular_tags
+
+{% endcomment %}
+
+<div class="sidebar-widget">
+    <h5 class="widget-title mb-3">人気のタグ</h5>
+    
+    <div class="d-flex flex-wrap gap-2">
+        {% for tag in popular_tags %}
+            <a href="{% url 'projects:search_results' %}?q={{ tag.name }}" class="btn btn-sm btn-outline-secondary">
+                {{ tag.name }}
+            </a>
+        {% empty %}
+            <p class="text-muted small">まだタグがありません。</p>
+        {% endfor %}
+    </div>
+
+</div>

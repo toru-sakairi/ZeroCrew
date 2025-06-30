@@ -22,7 +22,8 @@
         <!-- タグ (スペースを埋めるためのflex-grow-1) -->
         <div class="mb-3 flex-grow-1">
         {% for tag in project.tags.all|slice:":2" %} {# タグは最大2つまで表示 #}
-            <span class="badge rounded-pill bg-light text-dark border me-1 fw-normal">{{ tag.name }}</span>
+            <a href="{% url 'projects:search_results' %}?q={{ tag.name }}" class="badge rounded-pill bg-light text-dark border me-1 fw-normal text-decoration-none z-2 position-relative">
+        {{ tag.name }}</a>
         {% endfor %}
         </div>
 
