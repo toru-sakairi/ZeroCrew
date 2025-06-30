@@ -12,8 +12,9 @@
                 {% if request.user == project.user %}
                     <a href="{% url 'projects:project_edit' project.pk %}" class="btn btn-sm btn-outline-secondary me-2">編集</a>
                     <a href="{% url 'projects:project_chat' project.pk %}" class="btn btn-sm btn-outline-success me-2">チャット</a>
-                    <a href="{% url 'projects:applicant_list' project.pk %}" class="btn btn-sm btn-outline-info">応募者管理</a>
-                {% else %}
+                    <a href="{% url 'projects:applicant_list' project.pk %}" class="btn btn-sm btn-outline-info me-2">応募者管理</a>
+                    <a href="{% url 'projects:project_delete' project.pk %}" class="btn btn-sm btn-outline-danger me-2">削除</a>
+                    {% else %}
                     {% if is_member %}
                         <a href="{% url 'projects:project_chat' project.pk %}" class="btn btn-success">グループチャットに参加</a>
                     {% elif is_applied %}

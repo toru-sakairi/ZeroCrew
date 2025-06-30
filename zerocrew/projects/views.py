@@ -35,6 +35,16 @@ class HomeView(ListView):
         context['in_progress_projects'] = base_queryset.filter(status=Project.STATUS_IN_PROGRESS).order_by('-updated_at')[:4]
         context['completed_projects'] = base_queryset.filter(status=Project.STATUS_COMPLETED).order_by('-updated_at')[:4]
         
+        # 各タグが使われている回数を集計し、多い順に並べる
+        # annotate: 集計した値に'num_times'という名前を付ける
+        # order_by('-num_times'): 'num_times'の降順（多い順）で並べ替え
+        # [:10]: 上位10件だけを取得
+        popular_tags = Tag.objects.annotate(
+            num_times=Count('taggit_taggeditem_items')
+        ).order_by('-num_times')[:10]
+
+        context['popular_tags'] = popular_tags
+        
         return context
 
 

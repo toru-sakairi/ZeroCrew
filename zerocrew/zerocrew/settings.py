@@ -126,6 +126,10 @@ if DEBUG:
     ]
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
+    
+    # Email settings
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 # 本番環境の設定
 else:
     DATABASES = {

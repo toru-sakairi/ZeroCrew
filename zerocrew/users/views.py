@@ -1,79 +1,106 @@
-# userアプリケーション内のレスポンスを生成する
+# users/views.py
+
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views import View, generic
-from django.views.generic import ListView, CreateView, DetailView
+from django.template.loader import render_to_string
+from django.views import View
+from django.views.generic import ListView, DetailView
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login as auth_login
-from django.urls import reverse_lazy, reverse
-from django.contrib.auth.forms import UserCreationForm
+from django.urls import reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib import messages
-from django.http import HttpResponseRedirect # 追加
-
+from django.contrib.sites.shortcuts import get_current_site
+from django.contrib.auth.tokens import default_token_generator
+from django.http import HttpResponseRedirect
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.core.mail import send_mail
 from django.db.models import Count
 
 from .models import Profile, Conversation, DirectMessage, Follow
 from projects.models import Application
-from .forms import UserUpdateForm, ProfileUpdateForm, DirectMessageForm
+from .forms import StudentUserCreationForm, UserUpdateForm, ProfileUpdateForm, DirectMessageForm
 
 
-# ログインビュー
 class LoginView(View):
-    # ログインページの表示(GET)と、ログイン処理(POST)を担うビュー。
+    """ログインビュー"""
     def get(self, request, *args, **kwargs):
-        # ログインページをGETリクエストで表示する
-        # ログインフォームをテンプレートに渡す
         form = AuthenticationForm()
         return render(request, "users/login.html", {"form": form})
 
     def post(self, request, *args, **kwargs):
-        # ポストリクエストで送信された情報で、ログイン処理を行う
-        # 送信されたデータでフォームを検証
         form = AuthenticationForm(request, data=request.POST)
-
-        # フォームの検証に成功した場合
         if form.is_valid():
-            # ユーザー名とパスワードを取得
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
-
-            # ユーザー認証
             user = authenticate(username=username, password=password)
 
-            # 認証に成功した場合
             if user is not None:
-                # ログイン処理を実行
-                auth_login(request, user)
-                # ログイン後のホーム画面にリダイレクト
-                return redirect("projects:home")
-
-        # フォームの検証に失敗した場合は、エラーメッセージ付きで再度フォームを表示
-        return render(request, "users/login.html", {"form": form})
+                if user.is_active:
+                    auth_login(request, user)
+                    return redirect("projects:home")
+                else:
+                    messages.error(request, "このアカウントはまだ有効化されていません。メールを確認してください。")
+            else:
+                messages.error(request, "ユーザー名またはパスワードが正しくありません。")
+        
+        return render(request, 'users/login.html', {'form': form})
     
-# ユーザー登録ビュー：ユーザーの新規登録を行うページ
-# CreateViewを継承し、登録成功後、自動でログインさせる
-class RegisterView(CreateView):
-    form_class = UserCreationForm
-    template_name = "users/register.html"
-    success_url = reverse_lazy("projects:home")
+    
+class RegisterView(View):
+    """ユーザーの仮登録と確認メールの送信を行うビュー"""
+    def get(self, request, *args, **kwargs):
+        form = StudentUserCreationForm()
+        return render(request, 'users/register.html', {'form': form})
 
-    def form_valid(self, form):
-        # フォームを保存し、ユーザーオブジェクトを取得
-        user = form.save()
-        # 作成したユーザーでそのままログイン処理を行う
-        login(self.request, user)
-        messages.success(self.request, 'ユーザー登録が完了しました。')
-        # 親クラスのform_validを呼び出し、success_urlにリダイレクトさせる
-        return super().form_valid(form)
-        
-        
-# プロフィール表示ビュー
-# ユーザーのプロフィールページを表示する。マイページと、他ユーザーのプロフィールページの両方を兼ねる
-# プロフィール表示ビュー
+    def post(self, request, *args, **kwargs):
+        form = StudentUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.is_active = False
+            user.save()
+
+            current_site = get_current_site(request)
+            subject = '[ZeroCrew] アカウント本登録のご案内'
+            message = render_to_string('users/verification_email.txt', {
+                'user': user,
+                'domain': current_site.domain,
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': default_token_generator.make_token(user),
+            })
+            
+            send_mail(subject, message, 'no-reply@zerocrew.com', [user.email])
+            
+            messages.success(request, '確認メールを送信しました。メールボックスを確認し、本登録を完了してください。')
+            return redirect('users:login')
+
+        return render(request, 'users/register.html', {'form': form})
+
+
+class EmailVerificationView(View):
+    """メール内のリンクをクリックした後の処理を行うビュー"""
+    def get(self, request, uidb64, token, *args, **kwargs):
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+
+        if user is not None and default_token_generator.check_token(user, token):
+            user.is_active = True
+            user.save()
+            login(request, user)
+            messages.success(request, 'メール認証が完了しました。ようこそZeroCrewへ！')
+            return redirect('projects:home')
+        else:
+            messages.error(request, 'この認証リンクは無効です。')
+            return redirect('users:login')
+
+
 class ProfileView(LoginRequiredMixin, View):
+    """プロフィール表示ビュー"""
     def get(self, request, pk, *args, **kwargs):
-        # [修正] userオブジェクトは get_object_or_404 を使うとより安全です
         user = get_object_or_404(User, pk=pk)
         profile = Profile.objects.get(user=user)
         user_projects = user.projects.all().annotate(like_count=Count('like')).order_by('-created_at')
@@ -84,7 +111,6 @@ class ProfileView(LoginRequiredMixin, View):
         
         follower_count = user.followers.count()
         following_count = user.following.count()
-        
         following_users = User.objects.filter(followers__follower=user)
         
         context = {
@@ -97,20 +123,15 @@ class ProfileView(LoginRequiredMixin, View):
             'following_users': following_users
         }
 
-        # 表示しているプロフィールが、ログイン中のユーザー自身のものかを確認
         if request.user == user:
-            # 自分のプロフィールの場合、進行中の会話リストをコンテキストに追加
             context['user_conversations'] = request.user.conversations.all().order_by('-updated_at')
-        # ▲▲▲ ここまで ▲▲▲
 
         return render(request, 'users/profile.html', context)
         
-# プロフィール編集ビュー：自身のプロフィール情報を編集するページの表示（POST）と、更新処理（POST）を担う
+
 class ProfileEditView(LoginRequiredMixin, View):
-    
-    # プロフィール編集フォームを表示する
+    """プロフィール編集ビュー"""
     def get(self, request, *args, **kwargs):
-        # 現在ログインしているユーザーの情報でフォームを初期化
         user_form = UserUpdateForm(instance = request.user)
         profile_form = ProfileUpdateForm(instance=request.user.profile)
         context = {
@@ -119,55 +140,50 @@ class ProfileEditView(LoginRequiredMixin, View):
         }
         return render(request, 'users/profile_edit.html', context)
     
-    # 送信された情報でプロフィールを更新する
     def post(self, request, *args, **kwargs):
-        # request.FILESは、画像などのファイルデータを受け取るために必要
         user_form = UserUpdateForm(request.POST, instance = request.user)
-        profile_form = ProfileUpdateForm(request.POST, request.FILES,instance = request.user.profile)    
+        profile_form = ProfileUpdateForm(request.POST, request.FILES,instance = request.user.profile)     
 
         if user_form.is_valid() and profile_form.is_valid():
             user_form.save()
             profile_form.save()
             messages.success(request, 'プロフィールが更新されました。')
-            # 自身のプロフィールページにリダイレクト
             return redirect('users:profile', pk = request.user.pk)
         
-        # エラーがある場合は、エラーメッセージ付きで再度フォームを表示
         context = {
             'user_form':user_form,
             'profile_form':profile_form
         }
         return render(request, 'users/profile_edit.html', context)
 
-# 応募状況確認ビュー：自身が応募したプロジェクトの状況を一覧で確認するページ
+
 class ApplicationStatusView(LoginRequiredMixin, ListView):
+    """応募状況確認ビュー"""
     model = Application
     template_name = 'users/application_status.html'
     context_object_name = 'applications'
     
     def get_queryset(self):
-        # ユーザーが応募者であるものだけに絞り込む
         return Application.objects.filter(applicant=self.request.user).order_by('-applied_at')
     
+
 class ConversationListView(LoginRequiredMixin, ListView):
-    """自分が参加している会話の一覧（受信箱）を表示するビュー。"""
+    """会話一覧ビュー"""
     model = Conversation
     template_name = 'users/conversation_list.html'
     context_object_name = 'conversations'
     
     def get_queryset(self):
-        # 自分が参加している会話のみを取得する
         return self.request.user.conversations.all().order_by('-updated_at')
 
 
 class ConversationDetailView(LoginRequiredMixin, DetailView):
-    """特定の会話のメッセージ詳細を表示するビュー。"""
+    """会話詳細ビュー"""
     model = Conversation
     template_name = 'users/conversation_detail.html'
     context_object_name = 'conversation'
 
     def get_queryset(self):
-        # 自分が参加している会話のみアクセス可能にする
         return self.request.user.conversations.all()
     
     def get_context_data(self, **kwargs):
@@ -189,10 +205,9 @@ class ConversationDetailView(LoginRequiredMixin, DetailView):
         else:
             return self.get(request, *args, **kwargs)
 
+
 class StartConversationView(LoginRequiredMixin, View):
-    """
-    指定したユーザーとの会話を開始するか、既存の会話にリダイレクトするビュー。
-    """
+    """会話開始ビュー"""
     def get(self, request, user_id):
         target_user = get_object_or_404(User, pk=user_id)
         
@@ -211,9 +226,10 @@ class StartConversationView(LoginRequiredMixin, View):
             new_conversation = Conversation.objects.create()
             new_conversation.participants.add(request.user, target_user)
             return redirect('users:conversation_detail', pk=new_conversation.pk)
-        
-        
+
+
 class ToggleFollowView(LoginRequiredMixin, View):
+    """フォロー切り替えビュー"""
     def post(self, request, pk, *args, **kwargs):
         followed_user = get_object_or_404(User, pk=pk)
         
@@ -237,7 +253,8 @@ register = RegisterView.as_view()
 profile = ProfileView.as_view()
 profile_edit = ProfileEditView.as_view()
 application_status = ApplicationStatusView.as_view()
-conversationList = ConversationListView.as_view()
-conversationDetail = ConversationDetailView.as_view()
-startConversation = StartConversationView.as_view()
-toggle_follow = ToggleFollowView.as_view() # 新しいビューを追記
+conversation_list = ConversationListView.as_view()
+conversation_detail = ConversationDetailView.as_view()
+start_conversation = StartConversationView.as_view()
+toggle_follow = ToggleFollowView.as_view()
+email_verification = EmailVerificationView.as_view()

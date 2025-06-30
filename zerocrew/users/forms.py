@@ -1,14 +1,36 @@
 from django import forms
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
 from .models import Profile, DirectMessage
 import json
+import re # 正規表現を使うためにインポート(メールの認証に使う)
 
+# ユーザー登録ビューで前まで使っていたDjango標準のUserCrationFormは、今後使わない
+class StudentUserCreationForm(UserCreationForm):
+    email = forms.EmailField(
+        label='大学のメールアドレス',
+        help_text='ac.jp, ed.jp ドメインのメールアドレスで登録してください。'
+    )
+    
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = ('username', 'email')
+        
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        
+        if email:
+            if not re.search(r'\.ac\.jp$|\.ed\.jp$', email):
+                raise forms.ValidationError(
+                    "大学提供のメールアドレス(ac.jp, ed.jp)で登録してください"
+                )     
+        return email
+    
 
 class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ('username', 'email')
-
 
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
