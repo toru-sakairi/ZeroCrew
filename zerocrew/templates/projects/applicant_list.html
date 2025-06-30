@@ -11,7 +11,7 @@
         <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
             <div>
                 <p class="mb-1">
-                    <strong>応募者: <a href="{% url 'users:profile' app.applicant.pk %}">{{ app.applicant.username }}</a></strong>
+                    <strong>応募者: <a href="{% url 'users:profile' app.pk %}">{{ app.applicant.username }}</a></strong>
                 </p>
                 <p class="text-muted small mb-1">応募日時: {{ app.applied_at|date:"Y/m/d H:i" }}</p>
                 <p class="mb-0">現在のステータス: <span class="badge bg-info text-dark">{{ app.get_status_display }}</span></p>

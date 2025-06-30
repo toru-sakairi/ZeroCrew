@@ -111,7 +111,7 @@
         <div class="row row-cols-1 g-4">
             {% for project in user_projects %}
             <div class="col">
-                {% include 'projects/_project_card_title.html' with project=project %}
+                {% include 'projects/_project_card_compact.html' with project=project %}
             </div>
             {% empty %}
             <div class="col-12">
