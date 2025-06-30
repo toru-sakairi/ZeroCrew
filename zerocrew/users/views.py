@@ -18,6 +18,9 @@ from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from django.db.models import Count
 
+# settings.pyの値を利用するためにインポート
+from django.conf import settings
+
 from .models import Profile, Conversation, DirectMessage, Follow
 from projects.models import Application
 from .forms import StudentUserCreationForm, UserUpdateForm, ProfileUpdateForm, DirectMessageForm
@@ -36,15 +39,23 @@ class LoginView(View):
             password = form.cleaned_data.get('password')
             user = authenticate(username=username, password=password)
 
+            # ▼▼▼ ここのロジックを修正しました ▼▼▼
             if user is not None:
-                if user.is_active:
-                    auth_login(request, user)
-                    return redirect("projects:home")
-                else:
+                # ユーザーは存在するが、有効化されていない場合
+                if not user.is_active:
                     messages.error(request, "このアカウントはまだ有効化されていません。メールを確認してください。")
+                    return redirect("users:login")
+                
+                # 正常にログイン
+                auth_login(request, user)
+                return redirect("projects:home")
+            
+            # ユーザーが存在しない、またはパスワードが違う場合
             else:
                 messages.error(request, "ユーザー名またはパスワードが正しくありません。")
+                return redirect("users:login")
         
+        # フォームが無効な場合（通常は発生しにくい）
         return render(request, 'users/login.html', {'form': form})
     
     
@@ -61,16 +72,25 @@ class RegisterView(View):
             user.is_active = False
             user.save()
 
-            current_site = get_current_site(request)
+            if settings.DEBUG:
+                domain = get_current_site(request).domain
+            else:
+                domain = os.environ.get('SITE_DOMAIN', 'zerocrew.net') # デフォルト値を追加
+            
             subject = '[ZeroCrew] アカウント本登録のご案内'
             message = render_to_string('users/verification_email.txt', {
                 'user': user,
-                'domain': current_site.domain,
+                'domain': domain,
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': default_token_generator.make_token(user),
             })
             
-            send_mail(subject, message, 'no-reply@zerocrew.com', [user.email])
+            if settings.DEBUG:
+                from_email = 'no-reply@localhost.com'
+            else:
+                from_email = f'no-reply@{domain}'
+
+            send_mail(subject, message, from_email, [user.email])
             
             messages.success(request, '確認メールを送信しました。メールボックスを確認し、本登録を完了してください。')
             return redirect('users:login')
@@ -90,7 +110,7 @@ class EmailVerificationView(View):
         if user is not None and default_token_generator.check_token(user, token):
             user.is_active = True
             user.save()
-            login(request, user)
+            auth_login(request, user)
             messages.success(request, 'メール認証が完了しました。ようこそZeroCrewへ！')
             return redirect('projects:home')
         else:

@@ -5,7 +5,7 @@ from django.views import View
 from django.views.generic import CreateView, ListView, DetailView, UpdateView, DeleteView
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.urls import reverse_lazy, reverse
+from django.urls import reverse_lazy, reverse # ⇐ reverse_lazyをインポート
 from django.http import HttpResponseRedirect, HttpResponse
 from django.db.models import Q , Count
 from taggit.models import Tag 
@@ -34,16 +34,6 @@ class HomeView(ListView):
         context['recruiting_projects'] = base_queryset.filter(status=Project.STATUS_RECRUITING).order_by('-updated_at')[:4]
         context['in_progress_projects'] = base_queryset.filter(status=Project.STATUS_IN_PROGRESS).order_by('-updated_at')[:4]
         context['completed_projects'] = base_queryset.filter(status=Project.STATUS_COMPLETED).order_by('-updated_at')[:4]
-        
-        # 各タグが使われている回数を集計し、多い順に並べる
-        # annotate: 集計した値に'num_times'という名前を付ける
-        # order_by('-num_times'): 'num_times'の降順（多い順）で並べ替え
-        # [:10]: 上位10件だけを取得
-        popular_tags = Tag.objects.annotate(
-            num_times=Count('taggit_taggeditem_items')
-        ).order_by('-num_times')[:10]
-
-        context['popular_tags'] = popular_tags
         
         return context
 
@@ -147,6 +137,11 @@ class ApplyForProjectView(LoginRequiredMixin, CreateView):
     """プロジェクト応募ビュー。応募数の上限チェックも行う。"""
     model = Application
     fields = []
+
+    # ▼▼▼ このメソッドを追加しました ▼▼▼
+    def get_success_url(self):
+        # 処理成功後は、応募したプロジェクトの詳細ページにリダイレクトする
+        return reverse_lazy('projects:project_detail', kwargs={'pk': self.kwargs['pk']})
 
     def dispatch(self, request, *args, **kwargs):
         # ユーザーの応募数をカウント（申請中 or 承認済み）
@@ -363,5 +358,5 @@ update_application_status = UpdateApplicationStatusView.as_view()
 update_project_status = UpdateProjectStatusView.as_view()
 project_chat = ProjectChatView.as_view()
 tagged_project_list = TaggedProjectListView.as_view()
-search_results = SearchView.as_view() # searchViewからリネーム
+search_results = SearchView.as_view()
 toggle_like = ToggleLikeView.as_view()
