@@ -1,0 +1,13 @@
+{{ user.username }} 様
+
+ZeroCrewへのご登録ありがとうございます。
+まだ本登録は完了しておりません。
+
+以下のリンクをクリックして、アカウントの登録を完了してください。
+
+http://{{ domain }}{% url 'users:verify_email' uidb64=uid token=token %}
+
+もしこのメールに心当たりがない場合は、お手数ですがこのまま破棄してください。
+
+---
+ZeroCrew
