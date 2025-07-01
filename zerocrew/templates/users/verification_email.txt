@@ -5,7 +5,7 @@ ZeroCrewへのご登録ありがとうございます。
 
 以下のリンクをクリックして、アカウントの登録を完了してください。
 
-http://{{ domain }}{% url 'users:verify_email' uidb64=uid token=token %}
+https://{{ domain }}{% url 'users:verify_email' uidb64=uid token=token %}
 
 もしこのメールに心当たりがない場合は、お手数ですがこのまま破棄してください。
 

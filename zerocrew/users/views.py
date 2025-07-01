@@ -17,6 +17,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from django.db.models import Count
+import os  # ★★★ これを追加！ ★★★
 
 # settings.pyの値を利用するためにインポート
 from django.conf import settings
@@ -65,38 +66,33 @@ class RegisterView(View):
         form = StudentUserCreationForm()
         return render(request, 'users/register.html', {'form': form})
 
-    def post(self, request, *args, **kwargs):
-        form = StudentUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = False
-            user.save()
+        def post(self, request, *args, **kwargs):
+            form = StudentUserCreationForm(request.POST)
+            if form.is_valid():
+                user = form.save(commit=False)
+                user.is_active = False
+                user.save()
 
-            if settings.DEBUG:
-                domain = get_current_site(request).domain
-            else:
-                domain = os.environ.get('SITE_DOMAIN', 'zerocrew.net') # デフォルト値を追加
+                if settings.DEBUG:
+                    domain = get_current_site(request).domain
+                else:
+                    domain = os.environ.get('SITE_DOMAIN', 'zerocrew.net')
             
-            subject = '[ZeroCrew] アカウント本登録のご案内'
-            message = render_to_string('users/verification_email.txt', {
-                'user': user,
-                'domain': domain,
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                'token': default_token_generator.make_token(user),
-            })
+                subject = '[ZeroCrew] アカウント本登録のご案内'
+                message = render_to_string('users/verification_email.txt', {
+                    'user': user,
+                    'domain': domain,
+                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                    'token': default_token_generator.make_token(user),
+                })
+                # 修正後のsend_mail呼び出し
+                send_mail(subject, message, None, [user.email]) # from_emailをNoneに
+                # --- 修正ここまで ---
             
-            if settings.DEBUG:
-                from_email = 'no-reply@localhost.com'
-            else:
-                from_email = f'no-reply@{domain}'
-
-            send_mail(subject, message, from_email, [user.email])
-            
-            messages.success(request, '確認メールを送信しました。メールボックスを確認し、本登録を完了してください。')
+                messages.success(request, '確認メールを送信しました。メールボックスを確認し、本登録を完了してください。')
             return redirect('users:login')
 
         return render(request, 'users/register.html', {'form': form})
-
 
 class EmailVerificationView(View):
     """メール内のリンクをクリックした後の処理を行うビュー"""

@@ -129,11 +129,19 @@ if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
     # 本番環境ではAWS SESを使用
-    ANYMAIL = {
-        "AWS_REGION": os.environ.get('AWS_SES_REGION', 'ap-northeast-1'),
-    }
-    EMAIL_BACKEND = "anymail.backends.ses.EmailBackend"
-    DEFAULT_FROM_EMAIL = f'no-reply@{os.environ.get("SITE_DOMAIN")}'
+    #ANYMAIL = {
+    #    "AWS_REGION": os.environ.get('AWS_SES_REGION', 'ap-northeast-1'),
+    #}
+    #EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    #DEFAULT_FROM_EMAIL = f'no-reply@{os.environ.get("SITE_DOMAIN")}'
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'email-smtp.ap-northeast-1.amazonaws.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+    DEFAULT_FROM_EMAIL = 'no-reply@zerocrew.net'
+
 
 # --- その他 ---
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -145,7 +153,7 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
     # Nginxなどのプロキシサーバーからの 'https' ヘッダーを信用する
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'httpss')
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     # 全ての非HTTPSリクエストをHTTPSにリダイレクトする
     SECURE_SSL_REDIRECT = True
     CSRF_TRUSTED_ORIGINS = [f'https://{os.environ.get("SITE_DOMAIN")}']
