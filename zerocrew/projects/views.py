@@ -17,8 +17,8 @@ from django.conf import settings
 import shlex
 
 # モデルとフォームをインポート
-from .models import Project, Application, Message, Like
-from .forms import ProjectForm
+from .models import Project, ProjectReport, Application, Message, Like
+from .forms import ProjectForm, ReportForm
 
 
 class HomeView(ListView):
@@ -33,7 +33,7 @@ class HomeView(ListView):
         context['new_projects'] = base_queryset.order_by('-created_at')[:4]
         context['recruiting_projects'] = base_queryset.filter(status=Project.STATUS_RECRUITING).order_by('-updated_at')[:4]
         context['in_progress_projects'] = base_queryset.filter(status=Project.STATUS_IN_PROGRESS).order_by('-updated_at')[:4]
-        context['completed_projects'] = base_queryset.filter(status=Project.STATUS_COMPLETED).order_by('-updated_at')[:4]
+        context['completed_projects'] = base_queryset.filter(status=Project.STATUS_REPORTED).order_by('-updated_at')[:4]
         
         return context
 
@@ -115,6 +115,40 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
         
         return context
 
+class ProjectReportCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    """プロジェクトレポート作成ビュー"""
+    model = ProjectReport
+    form_class = ReportForm
+    template_name='projects/report_form.html'
+    
+    # アクセス制御：オーナーかつステータスが「完了」か
+    def test_func(self):
+        project = get_object_or_404(Project, pk=self.kwargs['pk'])
+        is_owner = self.request.user == project.user
+        is_completed = project.status == Project.STATUS_COMPLETED
+        return is_owner and is_completed
+    
+    # テンプレートにプロジェクト情報を渡す
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = get_object_or_404(Project, pk=self.kwargs['pk'])
+        return context
+    
+    # フォームが有効な場合に実行される処理
+    def form_valid(self, form):
+        project = get_object_or_404(Project, pk=self.kwargs['pk'])
+        form.instance.project = project
+        
+        project.status = Project.STATUS_REPORTED
+        project.save()
+        
+        messages.success(self.request,  f'プロジェクト「{project.title}」の成果レポートを提出しました！')
+        return super().form_valid(form)
+    
+    # 処理成功後のリダイレクト先
+    def get_success_url(self):
+        return reverse('projects:project_detail', kwargs={'pk': self.kwargs['pk']})    
+    
 
 class ProjectDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     """プロジェクト削除ビュー。"""
@@ -351,6 +385,7 @@ home = HomeView.as_view()
 project_create = ProjectCreateView.as_view()
 project_detail = ProjectDetailView.as_view()
 project_edit = ProjectEditView.as_view()
+project_report = ProjectReportCreateView.as_view()
 project_delete = ProjectDeleteView.as_view()
 apply_for_project = ApplyForProjectView.as_view()
 applicant_list = ApplicantListView.as_view()

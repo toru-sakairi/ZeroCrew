@@ -93,18 +93,29 @@
                     <h5 class="card-title fw-bold">目標・ゴール</h5>
                     <p class="card-text mb-4" style="white-space: pre-wrap;">{{ project.goal }}</p>
                     
-                    {% if request.user == project.user and project.status == project.STATUS_IN_PROGRESS %}
-                    <div class="card my-4 border-success">
-                        <div class="card-header bg-success-subtle text-success-emphasis">オーナー用メニュー</div>
-                        <div class="card-body text-center">
-                            <p class="card-text small">プロジェクトが目標を達成した場合、ステータスを変更してください。</p>
-                            <form action="{% url 'projects:update_project_status' project.pk %}" method="post">
-                                {% csrf_token %}
-                                <input type="hidden" name="status" value="{{ project.STATUS_COMPLETED }}">
-                                <button type="submit" class="btn btn-success">プロジェクトを「実現済」にする</button>
-                            </form>
+                    {% if request.user == project.user %}
+                        {% if project.status == project.STATUS_IN_PROGRESS %}
+                        <div class="card my-4 border-success">
+                            <div class="card-header bg-success-subtle text-success-emphasis">オーナー用メニュー</div>
+                            <div class="card-body text-center">
+                                <p class="card-text small">プロジェクトが目標を達成した場合、ステータスを変更してください。</p>
+                                <form action="{% url 'projects:update_project_status' project.pk %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="status" value="{{ project.STATUS_COMPLETED }}">
+                                    <button type="submit" class="btn btn-success">活動を完了し「実現済」にする</button>
+                                </form>
+                            </div>
                         </div>
-                    </div>
+                        {% elif project.status == project.STATUS_COMPLETED %}
+                        <div class="card my-4 border-warning">
+                            <div class="card-header bg-warning-subtle text-warning-emphasis">オーナー用メニュー</div>
+                            <div class="card-body text-center">
+                                <h4 class="card-title">お疲れ様でした！</h4>
+                                <p class="card-text">最後にプロジェクトの成果をレポートとして提出し、この素晴らしい活動の記録を残しましょう。</p>
+                                <a href="{% url 'projects:project_report' project.pk %}" class="btn btn-primary">成果レポートを提出する</a>
+                            </div>
+                        </div>
+                        {% endif %}
                     {% endif %}
                     
                     {% if project.tags.all %}
@@ -117,6 +128,27 @@
                     {% endif %}
                 </div>
             </div>
+
+            {% if project.status == project.STATUS_REPORTED and project.report %}
+            <div class="card mt-5 border-primary">
+                <div class="card-header bg-primary-subtle text-primary-emphasis">
+                    <h3><i class="bi bi-award-fill"></i> プロジェクト成果レポート</h3>
+                </div>
+                <div class="card-body">
+                    <h4 class="card-title">{{ project.report.title }}</h4>
+                    <p class="card-text text-muted small">提出日時: {{ project.report.created_at|date:"Y年m月d日" }}</p>
+                    <hr>
+                    <p class="card-text" style="white-space: pre-wrap;">{{ project.report.content }}</p>
+                    {% if project.report.attachment %}
+                    <hr>
+                    <a href="{{ project.report.attachment.url }}" class="btn btn-outline-primary" target="_blank" rel="noopener noreferrer">
+                        <i class="bi bi-paperclip"></i> 添付ファイルを見る
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
         </div>
         <div class="card-footer bg-light">
             <a href="{% url 'projects:home' %}" class="btn btn-secondary">&laquo; プロジェクト一覧に戻る</a>

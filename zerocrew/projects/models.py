@@ -12,11 +12,13 @@ class Project(models.Model):
     STATUS_RECRUITING = 'recruiting'  # 募集中
     STATUS_IN_PROGRESS = 'in_progress' # 実行中
     STATUS_COMPLETED = 'completed'    # 実現済
+    STATUS_REPORTED = 'reported'    # レポート提出済み
     
     STATUS_CHOICES = [
         (STATUS_RECRUITING, '募集中'),
         (STATUS_IN_PROGRESS, '実行中'),
         (STATUS_COMPLETED, '実現済'),
+        (STATUS_REPORTED, 'レポート提出済み')
     ]
     
     # user:プロジェクトを投稿したユーザー。外部キー。
@@ -89,10 +91,36 @@ class Project(models.Model):
     # 管理画面などで表示される際の、このオブジェクトの文字列表現。
     def __str__(self):
         return self.title
+    
+# レポートも出る。実現したプロジェクトの成果をまとめるもの
+class ProjectReport(models.Model):
+    project = models.OneToOneField(
+        Project,
+        on_delete = models.CASCADE,
+        related_name='report',
+        verbose_name='対象プロジェクト'
+    )
+    
+    # レポートのタイトル
+    title = models.CharField(max_length=200, verbose_name='レポートタイトル')
+    # レポートの本文
+    content = models.TextField(verbose_name='活動内容・成果')
+    # スライド資料（PDF）などをアップロードできるようにするフィールド
+    attachment = models.FileField(
+        upload_to='reports/%Y/%m',
+        blank=True,
+        null=True,
+        verbose_name='添付ファイル'
+    )
+    
+    # 作成日時と更新日時
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f'{self.project.title} のレポート'
 
-# 応募モデル。コントリビューターがプロジェクトに対して行う「応募」を定義するモデル。
-
-
+# 応募モデル。コントリビューターがプロジェクトに対して行う「応募」を定義するモデル
 class Application(models.Model):
     # --- ステータス管理のための定数 ---
     STATUS_PENDING = 'pending'

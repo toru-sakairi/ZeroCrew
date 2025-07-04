@@ -2,7 +2,7 @@
 
 import json  # JSONを扱うためにインポート
 from django import forms
-from .models import Project
+from .models import Project, ProjectReport
 
 
 class ProjectForm(forms.ModelForm):
@@ -79,3 +79,13 @@ class ProjectForm(forms.ModelForm):
                 # カンマで分割し、各タグの前後の空白を削除します
                 return [tag.strip() for tag in raw_tags.split(',') if tag.strip()]
             return []
+
+class ReportForm(forms.ModelForm):
+    class Meta:
+        model = ProjectReport
+        fields = ['title', 'content', 'attachment']
+        widgets = {
+            'title': forms.TextInput(attrs={'class':'form-control'}),
+            'content': forms.Textarea(attrs={'class':'form-control', 'row':10}),
+            'attachment':  forms.ClearableFileInput(attrs={'class':'form-control'}),
+        }
