@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import TermsOfServiceView, Privacy_PolicyView, Landing_AboutView
+from .views import TermsOfServiceView, Privacy_PolicyView, Landing_AboutView, SubmitFeedbackView
 
 # アプリケーションの名前空間を設定
 app_name = 'pages'
@@ -11,4 +11,6 @@ urlpatterns = [
     path('privacy_policy/', Privacy_PolicyView.as_view(), name='privacy_policy'),
     # /landing_about/ というURLでランディングページ＆aboutについてのページを表示
     path('landing_about/', Landing_AboutView.as_view(), name='landing_about'),
+    # エラー報告＆改善フォーム
+    path('submit_feedback/', SubmitFeedbackView.as_view(), name='submit_feedback'),
 ]
