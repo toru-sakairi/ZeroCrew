@@ -47,10 +47,13 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
 
     def dispatch(self, request, *args, **kwargs):
         # ユーザーが作成したプロジェクト数をカウント
-        project_count = Project.objects.filter(user=request.user).count()
-        # settings.pyで定義した上限値（なければ3）と比較
-        limit = getattr(settings, 'MAX_PROJECTS_PER_USER', 3)
-        if project_count >= limit:
+        active_project_count = Project.objects.filter(
+            user=request.user,
+            status__in=[Project.STATUS_RECRUITING, Project.STATUS_IN_PROGRESS, Project.STATUS_COMPLETED]
+        ).count()
+        # usersのモデルに書いてあるリミットを用いる
+        limit = request.user.profile.project_post_limit
+        if active_project_count >= limit:
             messages.error(request, f"作成できるプロジェクトの上限（{limit}件）に達しました。")
             return redirect('projects:home')
         return super().dispatch(request, *args, **kwargs)
@@ -179,12 +182,18 @@ class ApplyForProjectView(LoginRequiredMixin, CreateView):
 
     def dispatch(self, request, *args, **kwargs):
         # ユーザーの応募数をカウント（申請中 or 承認済み）
-        application_count = Application.objects.filter(
+        active_applications_count = Application.objects.filter(
             applicant=request.user,
-            status__in=[Application.STATUS_PENDING, Application.STATUS_APPROVED]
+            project__status__in=[
+                Project.STATUS_RECRUITING, 
+                Project.STATUS_IN_PROGRESS, 
+                Project.STATUS_COMPLETED # ← これを追加
+            ]
         ).count()
-        limit = getattr(settings, 'MAX_APPLICATIONS_PER_USER', 5)
-        if application_count >= limit:
+        # ユーザーのプロフィールから応募上限数を取得
+        limit = request.user.profile.application_limit
+        # 上限チェック
+        if active_applications_count >= limit:
             messages.error(request, f"同時に応募できるプロジェクトの上限（{limit}件）に達しました。")
             return redirect('projects:project_detail', pk=self.kwargs['pk'])
         return super().dispatch(request, *args, **kwargs)

@@ -29,6 +29,8 @@ class Profile(models.Model):
     
     # 応募上限数
     application_limit = models.PositiveIntegerField(default=3, verbose_name='応募上限数')
+    # 投稿数上限
+    project_post_limit = models.PositiveIntegerField(default=3, verbose_name='投稿数上限数')
     
     # 管理画面での表示
     def __str__(self):
