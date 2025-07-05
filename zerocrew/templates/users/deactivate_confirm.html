@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card border-danger">
+        <div class="card-header bg-danger text-white">
+          <h4>アカウントの退会</h4>
+        </div>
+        <div class="card-body">
+          <p class="fs-5"><strong>本当に退会しますか？</strong></p>
+          <p>
+            退会手続きを行うと、このアカウントでログインすることができなくなります。<br>
+            あなたが作成したプロジェクトや応募、メッセージなどの記録は、サービスの整合性を保つためにサーバー上に保持されますが、他のユーザーからあなたのプロフィールが閲覧されることはなくなります。
+          </p>
+          <p class="text-danger fw-bold">この操作は一度行うと元に戻すことはできません。</p>
+          <hr>
+          <form method="post" class="text-end">
+            {% csrf_token %}
+            <a href="{% url 'users:profile' user.pk %}" class="btn btn-secondary">キャンセル</a>
+            <button type="submit" class="btn btn-danger">退会する</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

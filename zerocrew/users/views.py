@@ -5,7 +5,7 @@ from django.template.loader import render_to_string
 from django.views import View
 from django.views.generic import ListView, DetailView
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth import authenticate, login as auth_login, logout
 from django.urls import reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
@@ -134,7 +134,8 @@ class ProfileView(LoginRequiredMixin, View):
             'is_following': is_following,
             'follower_count': follower_count,
             'following_count': following_count,
-            'following_users': following_users
+            'following_users': following_users,
+            'is_deactivated': not user.is_active, 
         }
 
         if request.user == user:
@@ -191,6 +192,23 @@ class ProfileEditView(LoginRequiredMixin, View):
             'profile_form':profile_form
         }
         return render(request, 'users/profile_edit.html', context)
+    
+class DeactivateAccountView(LoginRequiredMixin, View):
+    template_name = 'users/deactivate_confirm.html'
+    
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name)
+    
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        
+        user.is_active = False
+        user.save()
+        
+        logout(request)
+        
+        messages.success(request, '退会手続きが完了しました。ご利用いただきありがとうございました。')
+        return redirect('projects:home')
 
 
 class ApplicationStatusView(LoginRequiredMixin, ListView):
@@ -294,3 +312,5 @@ conversation_detail = ConversationDetailView.as_view()
 start_conversation = StartConversationView.as_view()
 toggle_follow = ToggleFollowView.as_view()
 email_verification = EmailVerificationView.as_view()
+deactivate_account = DeactivateAccountView.as_view()
+

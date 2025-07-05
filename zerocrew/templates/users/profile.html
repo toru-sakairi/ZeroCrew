@@ -7,6 +7,11 @@
         <!-- 1. プロフィールカード -->
         <div class="card">
             <div class="card-body text-center">
+                {% if is_deactivated %}
+                    <div class="alert alert-warning" role="alert">
+                        このユーザーは退会済みです。
+                    </div>
+                {% endif %}
                 {% if profile.icon %}
                 <img src="{{ profile.icon.url }}" class="rounded-circle mb-3" width="150" height="150" alt="icon"
                     style="object-fit: cover;">
@@ -49,6 +54,9 @@
                     <!-- 自分のプロフィールの場合 -->
                     <a href="{% url 'users:profile_edit' %}" class="btn btn-secondary">プロフィールを編集</a>
                     <a href="{% url 'users:application_status' %}" class="btn btn-outline-info">応募状況を確認する</a>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'users:deactivate_account' %}" class="text-danger small">退会手続きはこちら</a>
+                    </div>
                     {% else %}
                     <!-- 他のユーザーのプロフィールの場合 -->
                     <form action="{% url 'users:toggle_follow' user.pk %}" method="post" class="d-grid">
@@ -170,7 +178,7 @@
         </div>
 
         {% comment %} 応募一覧パネルも本人にしか表示しない {% endcomment %}
-        {% if user == user %}
+        {% if request.user == user %}
         <div class="tab-pane fade" id="applied" role="tabpanel" aria-labelledby="applied-tab">
             <ul class="list-group">
             {% for application in applied_applications %}

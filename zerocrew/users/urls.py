@@ -14,4 +14,5 @@ urlpatterns = [
     path("messages/<int:pk>/", views.conversation_detail, name="conversation_detail"),
     path("messages/start/<int:user_id>/", views.start_conversation,name="start_conversation"),
     path("follow/<int:pk>/", views.toggle_follow, name='toggle_follow'),
+    path('deactivate/', views.deactivate_account, name='deactivate_account'),
 ]
