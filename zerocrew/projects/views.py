@@ -95,9 +95,16 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
         if self.request.user.is_authenticated:
             context['is_liked'] = project.like_set.filter(user=self.request.user).exists()
         
-        # 応募・メンバー状態
-        context['is_applied'] = Application.objects.filter(project=project, applicant=self.request.user).exists()
-        context['is_member'] = Application.objects.filter(project=project, applicant=self.request.user, status=Application.STATUS_APPROVED).exists() or self.request.user == owner
+                # --- 修正箇所 ---
+        # ログインユーザーの応募情報を取得（なければNone）
+        user_application = Application.objects.filter(project=project, applicant=self.request.user).first()
+        context['user_application'] = user_application
+        
+        # is_applied は user_application が存在するかどうかで判定
+        context['is_applied'] = user_application is not None
+        
+        # is_member は承認済みか、またはオーナー自身か
+        context['is_member'] = (user_application and user_application.status == Application.STATUS_APPROVED) or self.request.user == owner
         
         # メンバー情報
         approved_applications = Application.objects.filter(project=project, status=Application.STATUS_APPROVED)
@@ -273,7 +280,28 @@ class UpdateApplicationStatusView(LoginRequiredMixin, UserPassesTestMixin, View)
     def test_func(self):
         application = get_object_or_404(Application, pk=self.kwargs['pk'])
         return self.request.user == application.project.user
-
+    
+class CancelApplicationView(LoginRequiredMixin,View):
+    def post(self, request, *args, **kwargs):
+        project_pk = self.kwargs['pk']
+        project = get_object_or_404(Project, pk=project_pk)
+        
+        try:
+            # 取り消し対象の応募データを取得
+            application = Application.objects.get(project=project, applicant=request.user)
+            
+            # 応募が「申請中の場合のみ、削除を許可」
+            if application.status == Application.STATUS_PENDING:
+                application.delete()
+                messages.success(request, f'プロジェクト「{project.title}」への応募を取り消しました。')
+            else:
+                messages.error(request, '承認または拒否された応募は取り消せません。')
+                
+        except Application.DoesNotExist:
+            # 本来は発生し得ないが、念のためエラーハンドリング
+            messages.error(request, '応募情報が見つかりませんでした。')
+            
+        return redirect('projects:project_detail', pk=project_pk)
 
 class UpdateProjectStatusView(LoginRequiredMixin, UserPassesTestMixin, View):
     """プロジェクト自体のステータスを手動更新するビュー（実行中→実現済）。"""
@@ -399,6 +427,7 @@ project_delete = ProjectDeleteView.as_view()
 apply_for_project = ApplyForProjectView.as_view()
 applicant_list = ApplicantListView.as_view()
 update_application_status = UpdateApplicationStatusView.as_view()
+cancel_application = CancelApplicationView.as_view()
 update_project_status = UpdateProjectStatusView.as_view()
 project_chat = ProjectChatView.as_view()
 tagged_project_list = TaggedProjectListView.as_view()

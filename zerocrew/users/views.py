@@ -158,8 +158,6 @@ class ProfileView(LoginRequiredMixin, View):
 
         # ▼▼▼ ログインユーザー自身しか見れない情報をif文の中で追加 ▼▼▼
         if request.user == user:
-            # 応募一覧や会話リストは本人にしか見せない
-            context['applied_applications'] = Application.objects.filter(applicant=request.user).select_related('project').order_by('-applied_at')
             context['user_conversations'] = request.user.conversations.all().order_by('-updated_at')
 
 

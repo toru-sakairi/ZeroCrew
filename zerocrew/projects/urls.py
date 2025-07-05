@@ -19,6 +19,7 @@ urlpatterns = [
     path('project/<int:pk>/apply/', views.apply_for_project, name="apply_for_project"),
     path('project/<int:pk>/applicants/', views.applicant_list, name="applicant_list"),
     path('application/<int:pk>/update/', views.update_application_status, name="update_application_status"),
+    path('project/<int:pk>/cancel_application/', views.cancel_application, name='cancel_application'),
     path('project/<int:pk>/update-status/', views.update_project_status, name='update_project_status'),
     path('project/<int:pk>/chat/', views.project_chat, name="project_chat"),
     path('tags/<str:tag_slug>/', views.tagged_project_list, name='project_list_by_tag'),

@@ -14,16 +14,35 @@
                     <a href="{% url 'projects:project_chat' project.pk %}" class="btn btn-sm btn-outline-success me-2">チャット</a>
                     <a href="{% url 'projects:applicant_list' project.pk %}" class="btn btn-sm btn-outline-info me-2">応募者管理</a>
                     <a href="{% url 'projects:project_delete' project.pk %}" class="btn btn-sm btn-outline-danger me-2">削除</a>
-                    {% else %}
-                    {% if is_member %}
-                        <a href="{% url 'projects:project_chat' project.pk %}" class="btn btn-success">グループチャットに参加</a>
-                    {% elif is_applied %}
-                        <a href="#" class="btn btn-info disabled">承認待ち</a>
-                    {% elif project.status == project.STATUS_RECRUITING and remaining_slots > 0 %}
-                        <form action="{% url 'projects:apply_for_project' project.pk %}" method="post" class="d-inline">
+                {% else %}
+                    {% if not is_applied %}
+                        {# ▼▼▼【重要】このブロックが「まだ応募していない場合」の処理です ▼▼▼ #}
+                        {% if project.status == project.STATUS_RECRUITING and remaining_slots > 0 %}
+                            <form action="{% url 'projects:apply_for_project' project.pk %}" method="post" class="d-inline">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-primary">このプロジェクトに応募する</button>
                         </form>
+                        {% else %}
+                            <button class="btn btn-secondary disabled">募集終了</button>
+                    {% endif %}
+
+                    {% else %}
+                        {# ▼▼▼ ここからが「既に応募済みの場合」の処理です ▼▼▼ #}
+                        {% if user_application.status == 'pending' %}
+                            {# 応募が「申請中」の場合 → 「応募を取り消す」ボタン #}
+                            <form action="{% url 'projects:cancel_application' project.pk %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger">応募を取り消す</button>
+                            </form>
+
+                        {% elif user_application.status == 'approved' %}
+                            {# 応募が「承認済み」の場合 → 「チャットに参加」ボタン #}
+                            <a href="{% url 'projects:project_chat' project.pk %}" class="btn btn-success">グループチャットに参加</a>
+
+                        {% else %}
+                            {# 応募が「拒否済み」の場合 → ステータスを表示 #}
+                            <button class="btn btn-secondary disabled">応募は承認されませんでした</button>
+                        {% endif %}
                     {% endif %}
                 {% endif %}
             </div>
