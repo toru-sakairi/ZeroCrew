@@ -27,6 +27,9 @@ class Profile(models.Model):
     # タグ機能を追加
     tags = TaggableManager(verbose_name="スキル・役割", blank = True)
     
+    # 応募上限数
+    application_limit = models.PositiveIntegerField(default=3, verbose_name='応募上限数')
+    
     # 管理画面での表示
     def __str__(self):
         return f'{self.user.username}のプロフィール'

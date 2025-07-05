@@ -23,7 +23,7 @@ import os  # ★★★ これを追加！ ★★★
 from django.conf import settings
 
 from .models import Profile, Conversation, DirectMessage, Follow
-from projects.models import Application
+from projects.models import Application, Project
 from .forms import StudentUserCreationForm, UserUpdateForm, ProfileUpdateForm, DirectMessageForm
 
 
@@ -119,8 +119,7 @@ class ProfileView(LoginRequiredMixin, View):
     def get(self, request, pk, *args, **kwargs):
         user = get_object_or_404(User, pk=pk)
         profile = Profile.objects.get(user=user)
-        user_projects = user.projects.all().annotate(like_count=Count('like')).order_by('-created_at')
-        
+
         is_following = False
         if request.user.is_authenticated and request.user != user:
             is_following = Follow.objects.filter(follower=request.user, followed=user).exists()
@@ -132,7 +131,6 @@ class ProfileView(LoginRequiredMixin, View):
         context = {
             'user': user,
             'profile': profile,
-            'user_projects': user_projects,
             'is_following': is_following,
             'follower_count': follower_count,
             'following_count': following_count,
@@ -141,6 +139,28 @@ class ProfileView(LoginRequiredMixin, View):
 
         if request.user == user:
             context['user_conversations'] = request.user.conversations.all().order_by('-updated_at')
+            
+        # 自分がオーナーのプロジェクト
+        owned_projects = Project.objects.filter(user=user)
+        # 参加している人のプロジェクト
+        participating_projects = Project.objects.filter(
+            application__applicant = user,
+            application__status='approved'
+        )
+        all_related_projects = (owned_projects | participating_projects).distinct()
+
+        context['posted_projects'] = owned_projects
+        context['ongoing_projects'] = all_related_projects.filter(status='in_progress').order_by('-updated_at')
+        context['completed_projects'] = all_related_projects.filter(status='completed').order_by('-updated_at')
+        context['reported_projects'] = all_related_projects.filter(status='reported').order_by('-updated_at')
+        
+
+        # ▼▼▼ ログインユーザー自身しか見れない情報をif文の中で追加 ▼▼▼
+        if request.user == user:
+            # 応募一覧や会話リストは本人にしか見せない
+            context['applied_applications'] = Application.objects.filter(applicant=request.user).select_related('project').order_by('-applied_at')
+            context['user_conversations'] = request.user.conversations.all().order_by('-updated_at')
+
 
         return render(request, 'users/profile.html', context)
         
