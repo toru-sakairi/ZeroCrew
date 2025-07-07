@@ -157,8 +157,17 @@ if not DEBUG:
     # 全ての非HTTPSリクエストをHTTPSにリダイレクトする
     SECURE_SSL_REDIRECT = True
     
-    # HSTS設定 (まずは短い時間でテストすることを推奨)
-    # サイトが問題なく動作することを確認できたら、31536000 (1年) などの長い値に変更します。
-    SECURE_HSTS_SECONDS = 3600 
+    # --- HSTS (HTTP Strict Transport Security) 設定 ---
+    # 警告を解消し、セキュリティを最大化するための設定です
+    # 注意：一度設定すると後戻りが難しいので、意味を理解した上で設定してください
+    
+    # HSTSを有効にする期間（1年を推奨）
+    SECURE_HSTS_SECONDS = 31536000
+    
+    # サブドメインもHSTSの対象に含める
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    
+    # ブラウザのHSTSプリロードリストへの登録を可能にする
+    SECURE_HSTS_PRELOAD = True
     
     CSRF_TRUSTED_ORIGINS = [f'https://{os.environ.get("SITE_DOMAIN")}']
