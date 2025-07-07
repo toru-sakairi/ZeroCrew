@@ -168,6 +168,7 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     
     # ブラウザのHSTSプリロードリストへの登録を可能にする
-    SECURE_HSTS_PRELOAD = True
+    # HTTPをやる可能性あるかもだから
+    #SECURE_HSTS_PRELOAD = True
     
     CSRF_TRUSTED_ORIGINS = [f'https://{os.environ.get("SITE_DOMAIN")}']
