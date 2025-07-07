@@ -156,4 +156,9 @@ if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     # 全ての非HTTPSリクエストをHTTPSにリダイレクトする
     SECURE_SSL_REDIRECT = True
+    
+    # HSTS設定 (まずは短い時間でテストすることを推奨)
+    # サイトが問題なく動作することを確認できたら、31536000 (1年) などの長い値に変更します。
+    SECURE_HSTS_SECONDS = 3600 
+    
     CSRF_TRUSTED_ORIGINS = [f'https://{os.environ.get("SITE_DOMAIN")}']
