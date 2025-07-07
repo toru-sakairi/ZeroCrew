@@ -128,6 +128,8 @@ class ProfileView(LoginRequiredMixin, View):
         following_count = user.following.count()
         following_users = User.objects.filter(followers__follower=user)
         
+        
+        
         context = {
             'user': user,
             'profile': profile,
@@ -149,12 +151,16 @@ class ProfileView(LoginRequiredMixin, View):
             application__status='approved'
         )
         all_related_projects = (owned_projects | participating_projects).distinct()
-
-        context['posted_projects'] = owned_projects
-        context['ongoing_projects'] = all_related_projects.filter(status='in_progress').order_by('-updated_at')
-        context['completed_projects'] = all_related_projects.filter(status='completed').order_by('-updated_at')
-        context['reported_projects'] = all_related_projects.filter(status='reported').order_by('-updated_at')
         
+        # ▼▼▼ いいね数をannotateする処理を追加 ▼▼▼
+        context['posted_projects'] = owned_projects.annotate(like_count=Count('like', distinct=True))
+        
+        # all_related_projectsにもannotateを適用
+        annotated_related_projects = all_related_projects.annotate(like_count=Count('like', distinct=True))
+        
+        context['ongoing_projects'] = annotated_related_projects.filter(status='in_progress').order_by('-updated_at')
+        context['completed_projects'] = annotated_related_projects.filter(status='completed').order_by('-updated_at')
+        context['reported_projects'] = annotated_related_projects.filter(status='reported').order_by('-updated_at')
 
         # ▼▼▼ ログインユーザー自身しか見れない情報をif文の中で追加 ▼▼▼
         if request.user == user:

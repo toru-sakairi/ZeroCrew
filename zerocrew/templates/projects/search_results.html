@@ -45,7 +45,7 @@
         {% for project in projects %}
         <div class="col">
             {# ▼▼▼ ここで _project_card.html を呼び出す ▼▼▼ #}
-            {% include 'projects/_project_card_title.html' with project=project %}
+            {% include 'projects/_project_card_compact.html' with project=project %}
         </div>
         {% endfor %}
     </div>

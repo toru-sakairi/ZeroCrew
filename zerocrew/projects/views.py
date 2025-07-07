@@ -28,7 +28,7 @@ class HomeView(ListView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        base_queryset = Project.objects.annotate(like_count=Count('like'))
+        base_queryset = Project.objects.annotate(like_count=Count('like', distinct=True))
         
         context['new_projects'] = base_queryset.order_by('-created_at')[:4]
         context['recruiting_projects'] = base_queryset.filter(status=Project.STATUS_RECRUITING).order_by('-updated_at')[:4]
@@ -394,7 +394,7 @@ class SearchView(ListView):
             )
             search_conditions &= keyword_condition
         
-        return Project.objects.filter(search_conditions).distinct().annotate(like_count=Count('like')).order_by('-created_at')
+        return Project.objects.filter(search_conditions).distinct().annotate(like_count=Count('like', distinct=True)).order_by('-created_at')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
